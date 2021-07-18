@@ -2,15 +2,15 @@ package com.kliaou.ui.home
 
 import android.app.Activity.*
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED
+import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -20,10 +20,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kliaou.databinding.FragmentHomeBinding
 import com.kliaou.parts.RecyclerAdapter
@@ -31,6 +33,10 @@ import com.kliaou.parts.RecyclerItem
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.scanresult_item.*
 import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
@@ -160,8 +166,8 @@ class HomeFragment : Fragment() {
         if(isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
         else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
     }
-    private val bScanResult: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent) {
+    private val bScanResult = object: BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if (BluetoothDevice.ACTION_FOUND == action) {
                 val device =
@@ -174,27 +180,30 @@ class HomeFragment : Fragment() {
     }
 
     //my image
-    private val MY_IMG_FILE_NAME: String = "myimg.jpg"
     private fun createMyImg() {
-        my_img.setOnClickListener {
-            val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-
-            val myimgfile: File = getPhotoFile(MY_IMG_FILE_NAME)
-            val providerFile =
-                FileProvider.getUriForFile(this.requireContext(),"com.example.androidcamera.fileprovider", myimgfile)
-            takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, providerFile)
-            val startForResult =
-                registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
-                    when (result?.resultCode) {
-                        RESULT_OK -> {
-                            val imageBitmap = result.data?.extras?.get("data") as Bitmap
-                            val takenPhoto = BitmapFactory.decodeFile(myimgfile.absolutePath)
-                            my_img.setImageBitmap(imageBitmap)
-                        }
-                        RESULT_CANCELED -> {
-                        }
+        val MY_IMG_FILE_NAME: String = "myimg"
+        val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val myimgfile: File = getPhotoFile(MY_IMG_FILE_NAME)
+        val providerFile =
+            FileProvider.getUriForFile(
+                this.requireContext(),
+                "com.kliaou.fileprovider",
+                myimgfile
+            )
+        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, providerFile)
+        val startForResult =
+            registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
+                when (result?.resultCode) {
+                    RESULT_OK -> {
+//                        val imageBitmap = result.data?.extras?.get("data") as Bitmap
+                        val imageBitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
+                        my_img.setImageBitmap(imageBitmap)
+                    }
+                    RESULT_CANCELED -> {
                     }
                 }
+            }
+        my_img.setOnClickListener {
             startForResult.launch(takePhotoIntent)
         }
     }
