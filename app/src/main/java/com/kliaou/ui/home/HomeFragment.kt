@@ -1,16 +1,15 @@
 package com.kliaou.ui.home
 
+import android.Manifest
 import android.app.Activity.*
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED
-import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED
 import android.bluetooth.BluetoothDevice
 import android.content.*
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -20,12 +19,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kliaou.databinding.FragmentHomeBinding
 import com.kliaou.parts.RecyclerAdapter
@@ -33,8 +32,6 @@ import com.kliaou.parts.RecyclerItem
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.scanresult_item.*
 import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -65,6 +62,8 @@ class HomeFragment : Fragment() {
         scanResults = ArrayList()
         recyclerAdapter = RecyclerAdapter(scanResults)
         listview_scanresult.adapter = recyclerAdapter
+        //location
+        requestLocationPermission()
         //bluetooth
         createBl()
         //my image
@@ -78,8 +77,8 @@ class HomeFragment : Fragment() {
 
     //bluetooth
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    private var isScanning = false
     private lateinit var scanResults: ArrayList<RecyclerItem>
+    private var isScanning = false
     private fun createBl() {
         //check if bluetooth is available or not
         if (bluetoothAdapter == null) {
@@ -118,63 +117,131 @@ class HomeFragment : Fragment() {
         if (bluetoothAdapter!!.isDiscovering) {
             binding.textServerInfo3.text = "discoverable"
         } else {
-            binding.textServerInfo3.text = "NOT discoverable"
-            Toast.makeText(this.context, "Making Your Device Discoverable", Toast.LENGTH_LONG)
-                .show()
-            val intent2 = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
-            val startForResult2 =
-                registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
-                    when (result?.resultCode) {
-                        RESULT_OK -> {
-                            Toast.makeText(
-                                this.context,
-                                "Bluetooth Discoverable.",
-                                Toast.LENGTH_LONG
-                            )
-                                .show()
-                            binding.textServerInfo3.text = "discoverable"
-                        }
-                        RESULT_CANCELED -> {
-                            Toast.makeText(
-                                this.context,
-                                "Bluetooth NOT Discoverable",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
-            startForResult2.launch(intent2)
+//            binding.textServerInfo3.text = "NOT discoverable"
+//            Toast.makeText(this.context, "Making Your Device Discoverable", Toast.LENGTH_LONG)
+//                .show()
+//            val intent2 = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+//            val startForResult2 =
+//                registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
+//                    when (result?.resultCode) {
+//                        RESULT_OK -> {
+//                            Toast.makeText(
+//                                this.context,
+//                                "Bluetooth Discoverable.",
+//                                Toast.LENGTH_LONG
+//                            )
+//                                .show()
+//                            binding.textServerInfo3.text = "discoverable"
+//                        }
+//                        RESULT_CANCELED -> {
+//                            Toast.makeText(
+//                                this.context,
+//                                "Bluetooth NOT Discoverable",
+//                                Toast.LENGTH_LONG
+//                            ).show()
+//                        }
+//                    }
+//                }
+//            startForResult2.launch(intent2)
         }
         //btn_search
         setBtnSearchBkColor()
         binding.btnSearch.setOnClickListener {
-            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-            if (!isScanning) {
-                activity?.registerReceiver(bScanResult, filter)
+            if (!bluetoothAdapter.isDiscovering) {
+                val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+                filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+                requireContext()?.registerReceiver(bScanResult, filter)
                 bluetoothAdapter.startDiscovery()
-                isScanning = true
                 scanResults.clear()//rescan
+                recyclerAdapter.notifyDataSetChanged()
+//                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+//                pairedDevices?.forEach { device ->
+//                    val deviceName = device.name
+//                    val deviceHardwareAddress = device.address // MAC address
+//                }
+                isScanning = true
             } else {
-                activity?.unregisterReceiver(bScanResult)
+                requireContext()?.unregisterReceiver(bScanResult)
                 bluetoothAdapter.cancelDiscovery()
                 isScanning = false
             }
             setBtnSearchBkColor()
         }
     }
-    private fun setBtnSearchBkColor(){
-        if(isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
+    private fun setBtnSearchBkColor() {
+        if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
         else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
     }
     private val bScanResult = object: BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
-            if (BluetoothDevice.ACTION_FOUND == action) {
+            if(action == BluetoothDevice.ACTION_FOUND) {
                 val device =
                     intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                val recyclerItem = RecyclerItem(null,device!!.name, device.address)
+                val recyclerItem = RecyclerItem(null,device!!.address, device.address)
                 scanResults.add(recyclerItem)
                 recyclerAdapter.notifyItemInserted(scanResults.size-1)
+            } else if(action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED) {
+                bluetoothAdapter?.cancelDiscovery()
+                isScanning = false
+                setBtnSearchBkColor()
+            }
+        }
+    }
+
+    //location
+    private val LocationPermission = 1
+    private fun requestLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            !== PackageManager.PERMISSION_GRANTED
+        ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    requireActivity(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LocationPermission
+                )
+            } else {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LocationPermission
+                )
+            }
+        }
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
+                                            grantResults: IntArray) {
+        when (requestCode) {
+            LocationPermission -> {
+                if (grantResults.isNotEmpty() && grantResults[0] ==
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    if ((ContextCompat.checkSelfPermission(
+                            requireActivity(),
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) ===
+                                PackageManager.PERMISSION_GRANTED)
+                    ) {
+                        Toast.makeText(
+                            this.context,
+                            "Location Permission Granted",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(
+                        this.context,
+                        "Location Permission Is Necesary",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                return
             }
         }
     }
