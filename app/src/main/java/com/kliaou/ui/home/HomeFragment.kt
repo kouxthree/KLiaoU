@@ -178,14 +178,21 @@ class HomeFragment : Fragment() {
             if(action == BluetoothDevice.ACTION_FOUND) {
                 val device =
                     intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                val recyclerItem = RecyclerItem(null,device!!.address, device.address)
-                scanResults.add(recyclerItem)
-                recyclerAdapter.notifyItemInserted(scanResults.size-1)
+                if (device != null) {
+                    addToScanResults(device)
+                }
             } else if(action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED) {
                 bluetoothAdapter?.cancelDiscovery()
                 isScanning = false
                 setBtnSearchBkColor()
             }
+        }
+    }
+    private fun addToScanResults(device: BluetoothDevice) {
+        if (!scanResults.any { it.Address === device.address }) {
+            val recyclerItem = RecyclerItem(null, device.name, device.address)
+            scanResults.add(recyclerItem)
+            recyclerAdapter.notifyItemInserted(scanResults.size - 1)
         }
     }
 
