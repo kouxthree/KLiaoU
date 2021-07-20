@@ -5,9 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.R
+import com.kliaou.ui.BindActivity
+import com.kliaou.ui.notifications.NotificationsFragment
 import inflate
+
 
 class RecyclerAdapter(private val recyclerItems: ArrayList<RecyclerItem>):
     RecyclerView.Adapter<RecyclerAdapter.ResultHolder>() {
@@ -28,31 +32,32 @@ class RecyclerAdapter(private val recyclerItems: ArrayList<RecyclerItem>):
     override fun getItemCount() = recyclerItems.size
 
     class ResultHolder(v: View) : RecyclerView.ViewHolder(v), View.OnClickListener {
-        private var view: View = v
-        private var viewImgScanResult: ImageView
-        private var viewTxtScanResult: TextView
-        private var recyclerItem: RecyclerItem? = null
+        private var _view: View = v
+        private var _viewImgScanResult: ImageView
+        private var _viewTxtScanResult: TextView
+        private var _recyclerItem: RecyclerItem? = null
 
         init {
             v.setOnClickListener(this)
-            viewImgScanResult = view.findViewById<View>(R.id.img_scanresult) as ImageView
-            viewTxtScanResult = view.findViewById<View>(R.id.txt_scanresult) as TextView
+            _viewImgScanResult = _view.findViewById<View>(R.id.img_scanresult) as ImageView
+            _viewTxtScanResult = _view.findViewById<View>(R.id.txt_scanresult) as TextView
         }
 
         override fun onClick(v: View) {
             val context = itemView.context
             val showBindActivity = Intent(context, BindActivity::class.java)
-            showBindActivity.putExtra(ITEM_TO_BE_BOUND, recyclerItem)
+            showBindActivity.putExtra(ITEM_TO_BE_BOUND, _recyclerItem?.Address)
             context.startActivity(showBindActivity)
         }
 
-        companion object {
-            private const val ITEM_TO_BE_BOUND = "ITEM_TO_BE_BOUND"
-        }
-
         fun bindItem(recycleItem: RecyclerItem) {
-            viewImgScanResult
-            viewTxtScanResult.setText(recycleItem.Name + " " + recycleItem.Address)
+            _recyclerItem = recycleItem
+//            viewImgScanResult
+            _viewTxtScanResult.setText(recycleItem.Name + " " + recycleItem.Address)
         }
+    }
+
+    companion object {
+        const val ITEM_TO_BE_BOUND = "ITEM_TO_BE_BOUND"
     }
 }
