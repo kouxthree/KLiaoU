@@ -33,5 +33,11 @@
             android:layout_width="match_parent"
             android:layout_height="210dp"
             tools:srcCompat="@tools:sample/avatars" />
+
+        <ImageButton
+            android:id="@+id/btn_req"
+            android:layout_width="match_parent"
+            android:layout_height="95dp"
+            app:srcCompat="@android:drawable/stat_sys_phone_call_forward" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

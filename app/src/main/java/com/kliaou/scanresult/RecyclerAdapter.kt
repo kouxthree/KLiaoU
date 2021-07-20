@@ -1,15 +1,13 @@
-package com.kliaou.parts
+package com.kliaou.scanresult
 
 import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.R
 import com.kliaou.ui.BindActivity
-import com.kliaou.ui.notifications.NotificationsFragment
 import inflate
 
 
@@ -46,18 +44,18 @@ class RecyclerAdapter(private val recyclerItems: ArrayList<RecyclerItem>):
         override fun onClick(v: View) {
             val context = itemView.context
             val showBindActivity = Intent(context, BindActivity::class.java)
-            showBindActivity.putExtra(ITEM_TO_BE_BOUND, _recyclerItem?.Address)
+            showBindActivity.putExtra(BIND_ITEM_ADDRESS, _recyclerItem?.Address)
             context.startActivity(showBindActivity)
         }
 
         fun bindItem(recycleItem: RecyclerItem) {
             _recyclerItem = recycleItem
 //            viewImgScanResult
-            _viewTxtScanResult.setText(recycleItem.Name + " " + recycleItem.Address)
+            _viewTxtScanResult.text = recycleItem.Name + " " + recycleItem.Address
         }
     }
 
     companion object {
-        const val ITEM_TO_BE_BOUND = "ITEM_TO_BE_BOUND"
+        const val BIND_ITEM_ADDRESS = "BIND_ITEM_ADDRESS"
     }
 }

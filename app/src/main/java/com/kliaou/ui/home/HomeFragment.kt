@@ -4,15 +4,18 @@ import android.Manifest
 import android.app.Activity.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.*
+import android.content.ContentValues.TAG
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,11 +30,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kliaou.databinding.FragmentHomeBinding
-import com.kliaou.parts.RecyclerAdapter
-import com.kliaou.parts.RecyclerItem
+import com.kliaou.scanresult.RecyclerAdapter
+import com.kliaou.scanresult.RecyclerItem
+import com.kliaou.ui.BindActivity
 import kotlinx.android.synthetic.main.fragment_home.*
-import kotlinx.android.synthetic.main.scanresult_item.*
 import java.io.File
+import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -53,7 +57,6 @@ class HomeFragment : Fragment() {
         homeViewModel.text.observe(viewLifecycleOwner, { textView.text = it })
         return root
     }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //scan result list
@@ -69,7 +72,6 @@ class HomeFragment : Fragment() {
         //my image
         createMyImg()
     }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -79,6 +81,8 @@ class HomeFragment : Fragment() {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private lateinit var scanResults: ArrayList<RecyclerItem>
     private var isScanning = false
+    private var isBroadcasting = false
+    private lateinit var broadcastThread: BroadcastThread
     private fun createBl() {
         //check if bluetooth is available or not
         if (bluetoothAdapter == null) {
@@ -113,41 +117,10 @@ class HomeFragment : Fragment() {
                 }
             startForResult1.launch(intent1)
         }
-        //make bluetooth discoverable
-        if (bluetoothAdapter!!.isDiscovering) {
-            binding.textServerInfo3.text = "discoverable"
-        } else {
-//            binding.textServerInfo3.text = "NOT discoverable"
-//            Toast.makeText(this.context, "Making Your Device Discoverable", Toast.LENGTH_LONG)
-//                .show()
-//            val intent2 = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
-//            val startForResult2 =
-//                registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
-//                    when (result?.resultCode) {
-//                        RESULT_OK -> {
-//                            Toast.makeText(
-//                                this.context,
-//                                "Bluetooth Discoverable.",
-//                                Toast.LENGTH_LONG
-//                            )
-//                                .show()
-//                            binding.textServerInfo3.text = "discoverable"
-//                        }
-//                        RESULT_CANCELED -> {
-//                            Toast.makeText(
-//                                this.context,
-//                                "Bluetooth NOT Discoverable",
-//                                Toast.LENGTH_LONG
-//                            ).show()
-//                        }
-//                    }
-//                }
-//            startForResult2.launch(intent2)
-        }
         //btn_search
         setBtnSearchBkColor()
         binding.btnSearch.setOnClickListener {
-            if (!bluetoothAdapter.isDiscovering) {
+            if (bluetoothAdapter?.isDiscovering == false) {
                 val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
                 filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
                 requireContext()?.registerReceiver(bScanResult, filter)
@@ -161,11 +134,53 @@ class HomeFragment : Fragment() {
 //                }
                 isScanning = true
             } else {
-                requireContext()?.unregisterReceiver(bScanResult)
-                bluetoothAdapter.cancelDiscovery()
+                context?.unregisterReceiver(bScanResult)
+                bluetoothAdapter?.cancelDiscovery()
                 isScanning = false
             }
             setBtnSearchBkColor()
+        }
+        //btn_broadcast
+        //make bluetooth discoverable
+        binding.textServerInfo3.text = "NOT discoverable"
+        Toast.makeText(this.context, "Making Your Device Discoverable", Toast.LENGTH_LONG)
+            .show()
+        val intent2 = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+        val startForResult2 =
+            registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
+                when (result?.resultCode) {
+                    RESULT_OK -> {
+                        Toast.makeText(
+                            this.context,
+                            "Bluetooth Discoverable.",
+                            Toast.LENGTH_LONG
+                        )
+                            .show()
+                        binding.textServerInfo3.text = "discoverable"
+                    }
+                    RESULT_CANCELED -> {
+                        Toast.makeText(
+                            this.context,
+                            "Bluetooth NOT Discoverable",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        startForResult2.launch(intent2)
+        setBtnBroadcastBkColor()
+        binding.btnBroadcast.setOnClickListener {
+            if (!isBroadcasting) {
+                isBroadcasting = true
+                //run broadcast thread
+                broadcastThread.cancel()
+                broadcastThread = BroadcastThread(BindActivity.MALE_UUID)
+                broadcastThread.run()
+            } else {
+                isBroadcasting = false
+                broadcastThread.cancel()
+            }
+            setBtnBroadcastBkColor()
         }
     }
     private fun setBtnSearchBkColor() {
@@ -193,6 +208,42 @@ class HomeFragment : Fragment() {
             val recyclerItem = RecyclerItem(null, device.name, device.address)
             scanResults.add(recyclerItem)
             recyclerAdapter.notifyItemInserted(scanResults.size - 1)
+        }
+    }
+    private fun setBtnBroadcastBkColor() {
+        if (isBroadcasting) binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.RED)
+        else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+    }
+    private inner class BroadcastThread(uuid: UUID) : Thread() {
+        private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            bluetoothAdapter?.listenUsingRfcommWithServiceRecord(BindActivity.NAME, uuid)
+        }
+        override fun run() {
+            var shouldLoop = true
+            while (shouldLoop) {
+                val socket: BluetoothSocket? = try {
+                    mmServerSocket?.accept()
+                } catch (e: IOException) {
+                    Log.e(TAG, "Socket's accept() method failed", e)
+                    shouldLoop = false
+                    null
+                }
+                socket?.also {
+                    manageMyConnectedSocket(it)
+                    mmServerSocket?.close()
+                    shouldLoop = false
+                }
+            }
+        }
+        fun cancel() {
+            try {
+                mmServerSocket?.close()
+            } catch (e: IOException) {
+                Log.e(TAG, "Could not close the connect socket", e)
+            }
+        }
+        fun manageMyConnectedSocket(socket: BluetoothSocket) {
+
         }
     }
 

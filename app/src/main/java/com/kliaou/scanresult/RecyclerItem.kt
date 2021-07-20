@@ -1,4 +1,4 @@
-package com.kliaou.parts
+package com.kliaou.scanresult
 
 import android.provider.ContactsContract
 
