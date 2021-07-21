@@ -42,10 +42,10 @@ class RecyclerAdapter(private val recyclerItems: ArrayList<RecyclerItem>):
         }
 
         override fun onClick(v: View) {
-            val context = itemView.context
-            val showBindActivity = Intent(context, BindActivity::class.java)
-            showBindActivity.putExtra(BIND_ITEM_ADDRESS, _recyclerItem?.Address)
-            context.startActivity(showBindActivity)
+            val context = v.context
+            val showBindActivityIntent = Intent(context, BindActivity::class.java)
+            showBindActivityIntent.putExtra(BIND_ITEM_ADDRESS, _recyclerItem?.Address)
+            context.startActivity(showBindActivityIntent)
         }
 
         fun bindItem(recycleItem: RecyclerItem) {

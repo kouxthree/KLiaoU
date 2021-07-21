@@ -33,7 +33,6 @@ import com.kliaou.databinding.FragmentHomeBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
 import com.kliaou.ui.BindActivity
-import kotlinx.android.synthetic.main.fragment_home.*
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -61,10 +60,10 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         //scan result list
         scanResultLinearLayoutManager = LinearLayoutManager(activity)
-        listview_scanresult.layoutManager = scanResultLinearLayoutManager
+        binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
         scanResults = ArrayList()
         recyclerAdapter = RecyclerAdapter(scanResults)
-        listview_scanresult.adapter = recyclerAdapter
+        binding.listviewScanresult.adapter = recyclerAdapter
         //location
         requestLocationPermission()
         //bluetooth
@@ -124,7 +123,7 @@ class HomeFragment : Fragment() {
             if (bluetoothAdapter?.isDiscovering == false) {
                 val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
                 filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-                requireContext()?.registerReceiver(bScanResult, filter)
+                context?.registerReceiver(bScanResult, filter)
                 bluetoothAdapter.startDiscovery()
                 scanResults.clear()//rescan
                 recyclerAdapter.notifyDataSetChanged()
@@ -339,13 +338,13 @@ class HomeFragment : Fragment() {
                     RESULT_OK -> {
 //                        val imageBitmap = result.data?.extras?.get("data") as Bitmap
                         val imageBitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
-                        my_img.setImageBitmap(imageBitmap)
+                        binding.myImg.setImageBitmap(imageBitmap)
                     }
                     RESULT_CANCELED -> {
                     }
                 }
             }
-        my_img.setOnClickListener {
+        binding.myImg.setOnClickListener {
             startForResult.launch(takePhotoIntent)
         }
     }

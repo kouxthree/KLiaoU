@@ -4,24 +4,27 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
+import com.kliaou.databinding.ActivityBindBinding
 import com.kliaou.scanresult.RecyclerAdapter
-import kotlinx.android.synthetic.main.activity_bind.*
 import java.io.IOException
 import java.util.*
 
 class BindActivity : AppCompatActivity() {
-    val _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS)
+    private var _binding: ActivityBindBinding? = null
+    private val binding get() = _binding!!
+    private val _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bind)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        txt_uuid.text = _mac.toString()
+        binding.txtUuid.text = _mac.toString()
         //bluetooth
         createBl()
     }
@@ -49,12 +52,12 @@ class BindActivity : AppCompatActivity() {
     }
     private var blState = BL_STATE_NONE
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    private val device = bluetoothAdapter?.getRemoteDevice(_mac)
+    private val device = bluetoothAdapter?.getRemoteDevice(_mac)!!
     private lateinit var bluetoothSocket: BluetoothSocket
     private lateinit var _uuid: UUID
     private lateinit var connectThread: ConnectThread
     private fun createBl() {
-        btn_req.setOnClickListener {
+        binding.btnReq.setOnClickListener {
             _uuid = MALE_UUID
             if (bluetoothAdapter?.isDiscovering == true) {
                 bluetoothAdapter.cancelDiscovery()
