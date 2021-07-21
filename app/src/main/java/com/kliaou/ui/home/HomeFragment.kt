@@ -210,7 +210,7 @@ class HomeFragment : Fragment() {
     }
     private fun addToScanResults(device: BluetoothDevice) {
         if (!scanResults.any { it.Address === device.address }) {
-            val recyclerItem = RecyclerItem(null, device.name, device.address)
+            val recyclerItem = RecyclerItem(null, device.name?:"", device.address)
             scanResults.add(recyclerItem)
             recyclerAdapter.notifyItemInserted(scanResults.size - 1)
         }

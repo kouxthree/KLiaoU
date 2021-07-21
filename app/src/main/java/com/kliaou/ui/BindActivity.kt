@@ -17,14 +17,20 @@ import java.io.IOException
 import java.util.*
 
 class BindActivity : AppCompatActivity() {
-    private var _binding: ActivityBindBinding? = null
-    private val binding get() = _binding!!
-    private val _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS)
+    private lateinit var _binding: ActivityBindBinding
+    private lateinit var _mac: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bind)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.txtUuid.text = _mac.toString()
+
+        //init
+        //intent was null before onCreate
+        _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS).toString()
+        device = bluetoothAdapter?.getRemoteDevice(_mac)!!
+        _binding = ActivityBindBinding.inflate(layoutInflater)
+        _binding.txtUuid.text = _mac.toString()
+
         //bluetooth
         createBl()
     }
@@ -52,23 +58,24 @@ class BindActivity : AppCompatActivity() {
     }
     private var blState = BL_STATE_NONE
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    private val device = bluetoothAdapter?.getRemoteDevice(_mac)!!
+    private lateinit var device: BluetoothDevice
     private lateinit var bluetoothSocket: BluetoothSocket
     private lateinit var _uuid: UUID
     private lateinit var connectThread: ConnectThread
     private fun createBl() {
-        binding.btnReq.setOnClickListener {
+        _binding.btnReq.setOnClickListener {
             _uuid = MALE_UUID
             if (bluetoothAdapter?.isDiscovering == true) {
                 bluetoothAdapter.cancelDiscovery()
             }
+            connectThread = ConnectThread(device)
+            //run connect thread
+            if (blState != BindActivity.BL_STATE_NONE) {
+                connectThread.cancel()
+            }
+            //connectThread = device?.let { ConnectThread(it) }!!
+            connectThread.start()
         }
-        //run connect thread
-        if(blState != BindActivity.BL_STATE_NONE) {
-            connectThread.cancel()
-        }
-        connectThread = device?.let { ConnectThread(it) }!!
-        connectThread.start()
     }
     private inner class ConnectThread(device: BluetoothDevice) : Thread() {
         private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
