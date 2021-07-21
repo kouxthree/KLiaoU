@@ -83,6 +83,7 @@ class HomeFragment : Fragment() {
     private var isScanning = false
     private var isBroadcasting = false
     private lateinit var broadcastThread: BroadcastThread
+    private var blState = BindActivity.BL_STATE_NONE
     private fun createBl() {
         //check if bluetooth is available or not
         if (bluetoothAdapter == null) {
@@ -173,16 +174,21 @@ class HomeFragment : Fragment() {
             if (!isBroadcasting) {
                 isBroadcasting = true
                 //run broadcast thread
-                broadcastThread.cancel()
+                if(blState != BindActivity.BL_STATE_NONE){
+                    broadcastThread.cancel()
+                }
                 broadcastThread = BroadcastThread(BindActivity.MALE_UUID)
-                broadcastThread.run()
+                broadcastThread.start()
             } else {
                 isBroadcasting = false
-                broadcastThread.cancel()
+                if(blState != BindActivity.BL_STATE_NONE){
+                    broadcastThread.cancel()
+                }
             }
             setBtnBroadcastBkColor()
         }
     }
+    //scan
     private fun setBtnSearchBkColor() {
         if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
         else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
@@ -210,14 +216,23 @@ class HomeFragment : Fragment() {
             recyclerAdapter.notifyItemInserted(scanResults.size - 1)
         }
     }
+    //broadcast
     private fun setBtnBroadcastBkColor() {
-        if (isBroadcasting) binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.RED)
-        else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+        if (isBroadcasting) {
+            binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.RED)
+        } else {
+            binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+        }
     }
     private inner class BroadcastThread(uuid: UUID) : Thread() {
         private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
             bluetoothAdapter?.listenUsingRfcommWithServiceRecord(BindActivity.NAME, uuid)
         }
+
+        init {
+            blState = BindActivity.BL_STATE_LISTEN
+        }
+
         override fun run() {
             var shouldLoop = true
             while (shouldLoop) {
@@ -229,12 +244,13 @@ class HomeFragment : Fragment() {
                     null
                 }
                 socket?.also {
-                    manageMyConnectedSocket(it)
+                    manageAcceptedSocket(it)
                     mmServerSocket?.close()
                     shouldLoop = false
                 }
             }
         }
+
         fun cancel() {
             try {
                 mmServerSocket?.close()
@@ -242,7 +258,8 @@ class HomeFragment : Fragment() {
                 Log.e(TAG, "Could not close the connect socket", e)
             }
         }
-        fun manageMyConnectedSocket(socket: BluetoothSocket) {
+
+        private fun manageAcceptedSocket(socket: BluetoothSocket) {
 
         }
     }

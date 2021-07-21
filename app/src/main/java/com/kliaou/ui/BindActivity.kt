@@ -41,7 +41,13 @@ class BindActivity : AppCompatActivity() {
         val NAME = "KLIAOU"
         val MALE_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66")
         val FEMALE_UUID = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66")
+
+        val BL_STATE_NONE = 0
+        val BL_STATE_LISTEN = 1
+        val BL_STATE_CONNECTING = 2
+        val BL_STATE_CONNECTED = 3
     }
+    private var blState = BL_STATE_NONE
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val device = bluetoothAdapter?.getRemoteDevice(_mac)
     private lateinit var bluetoothSocket: BluetoothSocket
@@ -55,13 +61,18 @@ class BindActivity : AppCompatActivity() {
             }
         }
         //run connect thread
-        connectThread.cancel()
+        if(blState != BindActivity.BL_STATE_NONE) {
+            connectThread.cancel()
+        }
         connectThread = device?.let { ConnectThread(it) }!!
-        connectThread.run()
+        connectThread.start()
     }
     private inner class ConnectThread(device: BluetoothDevice) : Thread() {
         private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
             device.createRfcommSocketToServiceRecord(_uuid)
+        }
+        init{
+            blState = BindActivity.BL_STATE_CONNECTING
         }
         public override fun run() {
             bluetoothAdapter?.cancelDiscovery()
