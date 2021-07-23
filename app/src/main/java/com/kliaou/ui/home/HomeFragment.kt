@@ -12,8 +12,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -35,6 +34,8 @@ import com.kliaou.scanresult.RecyclerItem
 import com.kliaou.ui.BindActivity
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -126,12 +127,14 @@ class HomeFragment : Fragment() {
                 context?.registerReceiver(bScanResult, filter)
                 bluetoothAdapter.startDiscovery()
                 scanResults.clear()//rescan
-                recyclerAdapter.notifyDataSetChanged()
-//                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
-//                pairedDevices?.forEach { device ->
+                //paired devices
+                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+                pairedDevices?.forEach { device ->
+                    addToScanResults(device)
 //                    val deviceName = device.name
 //                    val deviceHardwareAddress = device.address // MAC address
-//                }
+                }
+                recyclerAdapter.notifyDataSetChanged()
                 isScanning = true
             } else {
                 context?.unregisterReceiver(bScanResult)
@@ -223,12 +226,24 @@ class HomeFragment : Fragment() {
             binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
         }
     }
+    private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                BindActivity.MESSAGE_READ -> {
+                    val readBuf = msg.obj as ByteArray
+                    val readMessage = String(readBuf, 0, msg.arg1)
+                    binding.textServerInfo4.text = (readMessage)
+                }
+            }
+        }
+    }
     private inner class BroadcastThread(uuid: UUID) : Thread() {
         private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
             bluetoothAdapter?.listenUsingRfcommWithServiceRecord(BindActivity.NAME, uuid)
         }
-
+        private lateinit var mmInStream: InputStream
         init {
+            Log.d(TAG, "create BroadcastThread")
             blState = BindActivity.BL_STATE_LISTEN
         }
 
@@ -250,16 +265,40 @@ class HomeFragment : Fragment() {
             }
         }
 
+        private fun manageAcceptedSocket(socket: BluetoothSocket) {
+            Log.i(TAG, "BEGIN manageAcceptedSocket")
+            var tmpIn: InputStream? = null
+            // Get input streams
+            try {
+                tmpIn = socket.inputStream
+                mmInStream = tmpIn
+            } catch (e: IOException) {
+                Log.e(TAG, "temp sockets not created", e)
+            }
+            val buffer = ByteArray(1024)
+            var bytes: Int
+            // Keep listening to the InputStream while connected
+            while (blState === BindActivity.BL_STATE_LISTEN) {
+                try {
+                    // Read from the InputStream
+                    bytes = mmInStream!!.read(buffer)
+                    // Send the obtained bytes to the UI Activity
+                    mHandler.obtainMessage(BindActivity.MESSAGE_READ, bytes, -1, buffer)
+                        .sendToTarget()
+                } catch (e: IOException) {
+                    Log.e(TAG, "disconnected", e)
+                    cancel()
+                    break
+                }
+            }
+        }
+
         fun cancel() {
             try {
                 mmServerSocket?.close()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the connect socket", e)
             }
-        }
-
-        private fun manageAcceptedSocket(socket: BluetoothSocket) {
-
         }
     }
 

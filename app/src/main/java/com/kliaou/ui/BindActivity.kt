@@ -1,19 +1,27 @@
 package com.kliaou.ui
 
+import android.R
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.ContentValues.TAG
-import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.util.Log
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView.OnEditorActionListener
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.kliaou.R
 import com.kliaou.databinding.ActivityBindBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.*
 
 class BindActivity : AppCompatActivity() {
@@ -21,21 +29,24 @@ class BindActivity : AppCompatActivity() {
     private lateinit var _mac: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bind)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        //init//intent was null before onCreate
+        _binding = ActivityBindBinding.inflate(layoutInflater)
+        //setContentView(R.layout.activity_bind)
+        setContentView(_binding.root)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action
 
-        //init
-        //intent was null before onCreate
         _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS).toString()
         device = bluetoothAdapter?.getRemoteDevice(_mac)!!
-        _binding = ActivityBindBinding.inflate(layoutInflater)
         _binding.txtUuid.text = _mac.toString()
 
         //bluetooth
         createBl()
+        //message view
+        createMsgView()
+
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.getItemId() == android.R.id.home) {
+        if (item.getItemId() == R.id.home) {
             finish()
             return true
         }
@@ -55,51 +66,174 @@ class BindActivity : AppCompatActivity() {
         val BL_STATE_LISTEN = 1
         val BL_STATE_CONNECTING = 2
         val BL_STATE_CONNECTED = 3
+
+        val MESSAGE_STATE_CHANGE = 1
+        val MESSAGE_READ = 2
+        val MESSAGE_WRITE = 3
+        val MESSAGE_DEVICE_NAME = 4
+        val MESSAGE_TOAST = 5
     }
     private var blState = BL_STATE_NONE
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private lateinit var device: BluetoothDevice
-    private lateinit var bluetoothSocket: BluetoothSocket
     private lateinit var _uuid: UUID
-    private lateinit var connectThread: ConnectThread
     private fun createBl() {
         _binding.btnReq.setOnClickListener {
-            _uuid = MALE_UUID
-            if (bluetoothAdapter?.isDiscovering == true) {
-                bluetoothAdapter.cancelDiscovery()
+            try {
+                device = bluetoothAdapter?.getRemoteDevice(_mac)!!
+                _uuid = MALE_UUID
+                if (bluetoothAdapter?.isDiscovering == true) {
+                    bluetoothAdapter.cancelDiscovery()
+                }
+                //run connect thread
+                connectThread = ConnectThread(device)
+                connectThread.start()
+                blState = BL_STATE_CONNECTING
+            } catch (e: IOException) {
+                val msg = "Could not get remote device"
+                Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG).show()
+                Log.e(TAG, msg, e)
             }
-            connectThread = ConnectThread(device)
-            //run connect thread
-            if (blState != BindActivity.BL_STATE_NONE) {
-                connectThread.cancel()
-            }
-            //connectThread = device?.let { ConnectThread(it) }!!
-            connectThread.start()
         }
     }
+    //connect and connected thread
+    private lateinit var connectThread: ConnectThread
+    private lateinit var connectedThread: ConnectedThread
     private inner class ConnectThread(device: BluetoothDevice) : Thread() {
-        private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            device.createRfcommSocketToServiceRecord(_uuid)
-        }
+//        private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
+//            device.createRfcommSocketToServiceRecord(_uuid)
+//        }
+        private var mmSocket: BluetoothSocket
+
         init{
-            blState = BindActivity.BL_STATE_CONNECTING
+            mmSocket = device.createRfcommSocketToServiceRecord(_uuid)
         }
-        public override fun run() {
+
+        override fun run() {
             bluetoothAdapter?.cancelDiscovery()
-            mmSocket?.let { socket ->
-                socket.connect()
-                manageConnectedSocket(socket)
+            try {
+                mmSocket!!.connect()
+                // Start the connected thread
+                connectedThread = ConnectedThread(mmSocket!!)
+                connectedThread.start()
+            } catch (e: IOException) {
+                Log.e(TAG, "Could not connect socket", e)
+                cancel()
             }
         }
+
         fun cancel() {
             try {
                 mmSocket?.close()
+                blState = BL_STATE_NONE
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the client socket", e)
             }
         }
-        fun manageConnectedSocket(socket: BluetoothSocket) {
+    }
+    private inner class ConnectedThread(socket: BluetoothSocket) : Thread() {
+        private val mmSocket: BluetoothSocket
+        private val mmInStream: InputStream?
+        private val mmOutStream: OutputStream?
+        override fun run() {
+            Log.i(TAG, "BEGIN mConnectedThread")
+            val buffer = ByteArray(1024)
+            var bytes: Int
+            // Keep listening to the InputStream while connected
+            while (blState === BL_STATE_CONNECTED) {
+                try {
+                    // Read from the InputStream
+                    bytes = mmInStream!!.read(buffer)
+                    // Send the obtained bytes to the UI Activity
+                    mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+                        .sendToTarget()
+                } catch (e: IOException) {
+                    Log.e(TAG, "disconnected", e)
+                    cancel()
+                    break
+                }
+            }
+        }
 
+        fun write(buffer: ByteArray?) {
+            try {
+                mmOutStream!!.write(buffer)
+                // Share the sent message back to the UI Activity
+                mHandler.obtainMessage(MESSAGE_WRITE, -1, -1, buffer)
+                    .sendToTarget()
+            } catch (e: IOException) {
+                Log.e(TAG, "Exception during write", e)
+            }
+        }
+
+        fun cancel() {
+            try {
+                mmSocket.close()
+                blState = BL_STATE_NONE
+            } catch (e: IOException) {
+                Log.e(TAG, "close() of connect socket failed", e)
+            }
+        }
+
+        init {
+            // Get the BluetoothSocket input and output streams
+            Log.d(TAG, "create ConnectedThread")
+            mmSocket = socket
+            var tmpIn: InputStream? = null
+            var tmpOut: OutputStream? = null
+            try {
+                tmpIn = socket.inputStream
+                tmpOut = socket.outputStream
+            } catch (e: IOException) {
+                Log.e(TAG, "temp sockets not created", e)
+            }
+            mmInStream = tmpIn
+            mmOutStream = tmpOut
+            blState = BL_STATE_CONNECTED
         }
     }
+    private fun setStatus(subTitle: CharSequence) {
+        supportActionBar?.subtitle = subTitle
+    }
+    private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                MESSAGE_STATE_CHANGE -> when (msg.arg1) {
+                    BL_STATE_CONNECTED -> {
+                        setStatus("CONNECTED")
+                        _binding.txtConversation.setText(null)
+                    }
+                    BL_STATE_CONNECTING -> setStatus("CONNECTING")
+                    BL_STATE_LISTEN, BL_STATE_NONE -> setStatus("NO CONNECT")
+                }
+                MESSAGE_WRITE -> {
+                    val writeBuf = msg.obj as ByteArray
+                    val writeMessage = String(writeBuf)
+                    _binding.txtConversation.append("\nMe:  $writeMessage")
+                }
+                MESSAGE_READ -> {
+                    val readBuf = msg.obj as ByteArray
+                    val readMessage = String(readBuf, 0, msg.arg1)
+                    _binding.txtConversation.append("\nRemote:  $readMessage")
+                }
+            }
+        }
+    }
+    private fun createMsgView() {
+        _binding.btnSend.setOnClickListener {
+            sendMessage(_binding.txtOut.text.toString())
+        }
+    }
+    private fun sendMessage(message: String) {
+        if (blState !== BL_STATE_CONNECTED) {
+            Toast.makeText(applicationContext, "Not Connected", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (message.length > 0) {
+            val send = message.toByteArray()
+            connectedThread.write(send)
+            _binding.txtOut.setText(null)
+        }
+    }
+
 }

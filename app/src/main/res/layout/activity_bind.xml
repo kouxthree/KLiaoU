@@ -31,13 +31,37 @@
         <ImageView
             android:id="@+id/img_remote"
             android:layout_width="match_parent"
-            android:layout_height="210dp"
+            android:layout_height="wrap_content"
             tools:srcCompat="@tools:sample/avatars" />
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_req"
             android:layout_width="match_parent"
-            android:layout_height="95dp"
-            app:srcCompat="@android:drawable/stat_sys_phone_call_forward" />
+            android:layout_height="wrap_content"
+            android:text="CONNECT" />
+
+        <EditText
+            android:id="@+id/txt_out"
+            android:layout_width="match_parent"
+            android:layout_height="71dp"
+            android:text="TextViewOut"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="send message" />
+
+        <TextView
+            android:id="@+id/txt_conversation"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:ems="10"
+            android:gravity="start|top"
+            android:inputType="textMultiLine"
+            android:text="TextIn"
+            android:textSize="24sp" />
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
