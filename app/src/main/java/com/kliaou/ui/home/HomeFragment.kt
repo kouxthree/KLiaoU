@@ -28,6 +28,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.kliaou.R
 import com.kliaou.databinding.FragmentHomeBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
@@ -143,7 +144,6 @@ class HomeFragment : Fragment() {
             }
             setBtnSearchBkColor()
         }
-        //btn_broadcast
         //make bluetooth discoverable
         binding.textServerInfo3.text = "NOT discoverable"
         Toast.makeText(this.context, "Making Your Device Discoverable", Toast.LENGTH_LONG)
@@ -171,6 +171,7 @@ class HomeFragment : Fragment() {
                 }
             }
         startForResult2.launch(intent2)
+        //btn_broadcast
         setBtnBroadcastBkColor()
         binding.btnBroadcast.setOnClickListener {
             if (!isBroadcasting) {
@@ -232,7 +233,11 @@ class HomeFragment : Fragment() {
                 BindActivity.MESSAGE_READ -> {
                     val readBuf = msg.obj as ByteArray
                     val readMessage = String(readBuf, 0, msg.arg1)
-                    binding.textServerInfo4.text = (readMessage)
+                    try {
+                        binding.textServerInfo4.text = (readMessage)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "received message: $readMessage")
+                    }
                 }
             }
         }
