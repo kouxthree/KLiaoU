@@ -123,7 +123,7 @@ class BindActivity : AppCompatActivity() {
             try {
                 mmSocket!!.connect()
                 // Start the connected thread
-                 connectedThread = ConnectedThread(mmSocket!!)
+                connectedThread = ConnectedThread(mmSocket!!)
                 connectedThread?.start()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not connect socket", e)
