@@ -86,8 +86,9 @@ class BindActivity : AppCompatActivity() {
                     bluetoothAdapter.cancelDiscovery()
                 }
                 //run connect thread
+                stopConnecting()
                 connectThread = ConnectThread(device)
-                connectThread.start()
+                connectThread?.start()
                 blState = BL_STATE_CONNECTING
             } catch (e: IOException) {
                 val msg = "Could not get remote device"
@@ -97,8 +98,16 @@ class BindActivity : AppCompatActivity() {
         }
     }
     //connect and connected thread
-    private lateinit var connectThread: ConnectThread
-    private lateinit var connectedThread: ConnectedThread
+    private var connectThread: ConnectThread? = null
+    private var connectedThread: ConnectedThread? = null
+    private fun stopConnecting() {
+        if(connectThread != null) {
+            connectThread?.cancel()
+        }
+        if(connectedThread != null) {
+            connectedThread?.cancel()
+        }
+    }
     private inner class ConnectThread(device: BluetoothDevice) : Thread() {
 //        private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
 //            device.createRfcommSocketToServiceRecord(_uuid)
@@ -114,8 +123,8 @@ class BindActivity : AppCompatActivity() {
             try {
                 mmSocket!!.connect()
                 // Start the connected thread
-                connectedThread = ConnectedThread(mmSocket!!)
-                connectedThread.start()
+                 connectedThread = ConnectedThread(mmSocket!!)
+                connectedThread?.start()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not connect socket", e)
                 cancel()
@@ -231,7 +240,7 @@ class BindActivity : AppCompatActivity() {
         }
         if (message.length > 0) {
             val send = message.toByteArray()
-            connectedThread.write(send)
+            connectedThread?.write(send)
             _binding.txtOut.setText(null)
         }
     }
