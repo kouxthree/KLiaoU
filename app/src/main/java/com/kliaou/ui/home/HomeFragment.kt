@@ -64,7 +64,6 @@ class HomeFragment : Fragment() {
         //scan result list
         scanResultLinearLayoutManager = LinearLayoutManager(activity)
         binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
-        scanResults = ArrayList()
         recyclerAdapter = RecyclerAdapter(scanResults)
         binding.listviewScanresult.adapter = recyclerAdapter
         //location
@@ -81,7 +80,7 @@ class HomeFragment : Fragment() {
 
     //bluetooth
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    private lateinit var scanResults: ArrayList<RecyclerItem>
+    private val scanResults: ArrayList<RecyclerItem> by lazy() { ArrayList() }
     private var isScanning = (bluetoothAdapter?.isDiscovering == true)
     private var isBroadcasting = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
     private var broadcastThread: BroadcastThread? = null
@@ -146,8 +145,6 @@ class HomeFragment : Fragment() {
             setBtnSearchBkColor()
         }
         //make bluetooth discoverable
-        Toast.makeText(this.context, "Making Your Device Discoverable", Toast.LENGTH_LONG)
-            .show()
         val intentTurnOnBtDiscoverable = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
         intentTurnOnBtDiscoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, BROADCAST_TIMEOUT);
         val startForResultTurnOnBtDiscoverable =
