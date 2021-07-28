@@ -43,7 +43,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
-
 class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private var _binding: FragmentHomeBinding? = null
@@ -81,11 +80,6 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    //for activity-fragment data communication
-    companion object{
-        val SCANRESULTS_ADDRESS_KEY = "SCANRESULTS_ADDRESS"
     }
 
     //bluetooth
@@ -223,8 +217,12 @@ class HomeFragment : Fragment() {
     }
     //scan
     private fun setBtnSearchBkColor() {
-        if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
-        else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+        try {
+            if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
+            else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+        } catch (e: Exception) {
+            Log.e(TAG, "biding is null when fragment not active")
+        }
     }
     private val bScanResult = object: BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -254,12 +252,16 @@ class HomeFragment : Fragment() {
     //broadcast
     private val BROADCAST_TIMEOUT: Long = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES)
     private fun setBtnBroadcastBkColor() {
-        if (isBroadcasting){
-            binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.RED)
-            binding.textServerInfo3.text = "discoverable"
-        } else {
-            binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
-            binding.textServerInfo3.text = "NOT discoverable"
+        try {
+            if (isBroadcasting){
+                binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.RED)
+                binding.textServerInfo3.text = "discoverable"
+            } else {
+                binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+                binding.textServerInfo3.text = "NOT discoverable"
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "biding is null when fragment not active")
         }
     }
     private fun stopBroadcasting() {
