@@ -1,13 +1,17 @@
 package com.kliaou.ui.home
 
 import android.Manifest
-import android.app.Activity.*
+import android.app.Activity.RESULT_CANCELED
+import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
-import android.content.*
+import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
@@ -21,14 +25,13 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.kliaou.R
 import com.kliaou.databinding.FragmentHomeBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
@@ -36,10 +39,10 @@ import com.kliaou.ui.BindActivity
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+
 
 class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
@@ -70,12 +73,19 @@ class HomeFragment : Fragment() {
         requestLocationPermission()
         //bluetooth
         createBl()
+        //restore scan results
+        restoreScanResults()
         //my image
         createMyImg()
     }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    //for activity-fragment data communication
+    companion object{
+        val SCANRESULTS_ADDRESS_KEY = "SCANRESULTS_ADDRESS"
     }
 
     //bluetooth
@@ -201,6 +211,16 @@ class HomeFragment : Fragment() {
             setBtnBroadcastBkColor()
         }
     }
+    //restore scan results
+    private fun restoreScanResults() {
+        homeViewModel.lstAddress.observe(viewLifecycleOwner, {
+            scanResults.clear()
+            it.forEach { address ->
+               val item = RecyclerItem(null, "", address)
+                scanResults.add(item)
+            }
+        })
+    }
     //scan
     private fun setBtnSearchBkColor() {
         if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
@@ -227,6 +247,8 @@ class HomeFragment : Fragment() {
             val recyclerItem = RecyclerItem(null, device.name?:"", device.address)
             scanResults.add(recyclerItem)
             recyclerAdapter.notifyItemInserted(scanResults.size - 1)
+            //save scan results
+            homeViewModel.saveScannedResults(scanResults)
         }
     }
     //broadcast
@@ -417,3 +439,4 @@ class HomeFragment : Fragment() {
         return File.createTempFile(fileName, ".jpg", directoryStorage)
     }
 }
+
