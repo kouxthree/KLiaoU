@@ -30,6 +30,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kliaou.databinding.FragmentHomeBinding
@@ -44,7 +45,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 class HomeFragment : Fragment() {
-    private lateinit var homeViewModel: HomeViewModel
+//    private lateinit var homeViewModel: HomeViewModel
+    val homeViewModel:HomeViewModel by viewModels()
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private lateinit var recyclerAdapter: RecyclerAdapter
@@ -54,7 +56,7 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+//        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
         val textView: TextView = binding.textHome
@@ -205,21 +207,30 @@ class HomeFragment : Fragment() {
             setBtnBroadcastBkColor()
         }
     }
-    //restore scan results
+    //for data communication
     private fun restoreScanResults() {
-        homeViewModel.lstAddress.observe(viewLifecycleOwner, {
-            scanResults.clear()
-            it.forEach { address ->
-               val item = RecyclerItem(null, "", address)
-                scanResults.add(item)
-            }
-        })
+//        homeViewModel.lstAddress.observe(viewLifecycleOwner, {
+//            scanResults.clear()
+//            it.forEach { address ->
+//                val item = RecyclerItem(null, "", address)
+//                scanResults.add(item)
+//            }
+//        })
+        scanResults.clear()
+        val lst: ArrayList<String> = homeViewModel.getLstAddress()
+        lst.forEach { address ->
+            val item = RecyclerItem(null, "", address)
+            scanResults.add(item)
+        }
     }
     //scan
     private fun setBtnSearchBkColor() {
         try {
             if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
-            else binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+            else {
+                bluetoothAdapter?.cancelDiscovery()
+                binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "biding is null when fragment not active")
         }
@@ -234,7 +245,6 @@ class HomeFragment : Fragment() {
                     addToScanResults(device)
                 }
             } else if(action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED) {
-                bluetoothAdapter?.cancelDiscovery()
                 isScanning = false
                 setBtnSearchBkColor()
             }
@@ -246,7 +256,8 @@ class HomeFragment : Fragment() {
             scanResults.add(recyclerItem)
             recyclerAdapter.notifyItemInserted(scanResults.size - 1)
             //save scan results
-            homeViewModel.saveScannedResults(scanResults)
+//            homeViewModel.saveScannedResults(scanResults)
+            homeViewModel.saveLstAddress(scanResults)
         }
     }
     //broadcast

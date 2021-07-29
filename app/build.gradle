@@ -50,6 +50,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     //implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-savedstate:2.4.0-alpha02'
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
