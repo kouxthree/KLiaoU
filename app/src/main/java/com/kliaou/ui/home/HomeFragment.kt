@@ -32,7 +32,10 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.kliaou.R
 import com.kliaou.databinding.FragmentHomeBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
@@ -129,10 +132,7 @@ class HomeFragment : Fragment() {
         setBtnSearchBkColor()
         binding.btnSearch.setOnClickListener {
             if (bluetoothAdapter?.isDiscovering == false) {
-                val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-                filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-                context?.registerReceiver(bScanResult, filter)
-                bluetoothAdapter.startDiscovery()
+                startScan()
                 scanResults.clear()//rescan
                 //paired devices
                 val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
@@ -142,11 +142,8 @@ class HomeFragment : Fragment() {
 //                    val deviceHardwareAddress = device.address // MAC address
                 }
                 recyclerAdapter.notifyDataSetChanged()
-                isScanning = true
             } else {
-                context?.unregisterReceiver(bScanResult)
-                bluetoothAdapter?.cancelDiscovery()
-                isScanning = false
+               stopScan()
             }
             setBtnSearchBkColor()
         }
@@ -209,30 +206,29 @@ class HomeFragment : Fragment() {
     }
     //for data communication
     private fun restoreScanResults() {
-//        homeViewModel.lstAddress.observe(viewLifecycleOwner, {
-//            scanResults.clear()
-//            it.forEach { address ->
-//                val item = RecyclerItem(null, "", address)
-//                scanResults.add(item)
-//            }
-//        })
-        scanResults.clear()
-        val lst: ArrayList<String> = homeViewModel.getLstAddress()
-        lst.forEach { address ->
-            val item = RecyclerItem(null, "", address)
-            scanResults.add(item)
-        }
     }
     //scan
+    private fun startScan() {
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        context?.registerReceiver(bScanResult, filter)
+        bluetoothAdapter?.startDiscovery()
+        isScanning = true
+    }
+    private fun stopScan() {
+        context?.unregisterReceiver(bScanResult)
+        bluetoothAdapter?.cancelDiscovery()
+        isScanning = false
+    }
     private fun setBtnSearchBkColor() {
         try {
-            if (isScanning) binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.RED)
+            //biding is null when fragment not active
+            val btn = parentFragment?.view?.findViewById<FloatingActionButton>(R.id.btn_search)
+            if (isScanning) btn?.backgroundTintList = ColorStateList.valueOf(Color.RED)
             else {
-                bluetoothAdapter?.cancelDiscovery()
-                binding.btnSearch.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+                btn?.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "biding is null when fragment not active")
         }
     }
     private val bScanResult = object: BroadcastReceiver() {
@@ -245,7 +241,7 @@ class HomeFragment : Fragment() {
                     addToScanResults(device)
                 }
             } else if(action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED) {
-                isScanning = false
+                stopScan()
                 setBtnSearchBkColor()
             }
         }
@@ -255,24 +251,23 @@ class HomeFragment : Fragment() {
             val recyclerItem = RecyclerItem(null, device.name?:"", device.address)
             scanResults.add(recyclerItem)
             recyclerAdapter.notifyItemInserted(scanResults.size - 1)
-            //save scan results
-//            homeViewModel.saveScannedResults(scanResults)
-            homeViewModel.saveLstAddress(scanResults)
         }
     }
     //broadcast
     private val BROADCAST_TIMEOUT: Long = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES)
     private fun setBtnBroadcastBkColor() {
         try {
+            //biding is null when fragment not active
+            val btn = view?.findViewById<FloatingActionButton>(R.id.btn_broadcast)
+            val txt3 = view?.findViewById<TextView>(R.id.text_server_info3)
             if (isBroadcasting){
-                binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.RED)
-                binding.textServerInfo3.text = "discoverable"
+                btn?.backgroundTintList = ColorStateList.valueOf(Color.RED)
+                txt3?.text = "discoverable"
             } else {
-                binding.btnBroadcast.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
-                binding.textServerInfo3.text = "NOT discoverable"
+                btn?.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
+                txt3?.text = "NOT discoverable"
             }
         } catch (e: Exception) {
-            Log.e(TAG, "biding is null when fragment not active")
         }
     }
     private fun stopBroadcasting() {
