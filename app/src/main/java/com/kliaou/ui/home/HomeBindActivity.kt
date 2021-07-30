@@ -1,4 +1,4 @@
-package com.kliaou.ui
+package com.kliaou.ui.home
 
 import android.R
 import android.bluetooth.BluetoothAdapter
@@ -10,27 +10,24 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.util.Log
-import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
-import android.view.inputmethod.EditorInfo
-import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.kliaou.databinding.ActivityBindBinding
+import com.kliaou.databinding.ActivityHomeBindBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 
-class BindActivity : AppCompatActivity() {
-    private lateinit var _binding: ActivityBindBinding
+class HomeBindActivity : AppCompatActivity() {
+    private lateinit var _binding: ActivityHomeBindBinding
     private lateinit var _mac: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //init//intent was null before onCreate
-        _binding = ActivityBindBinding.inflate(layoutInflater)
+        _binding = ActivityHomeBindBinding.inflate(layoutInflater)
         //setContentView(R.layout.activity_bind)
         setContentView(_binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action

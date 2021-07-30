@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.R
-import com.kliaou.ui.BindActivity
+import com.kliaou.ui.home.HomeBindActivity
 import inflate
 
 
@@ -43,7 +43,7 @@ class RecyclerAdapter(private val recyclerItems: ArrayList<RecyclerItem>):
 
         override fun onClick(v: View) {
             val context = v.context
-            val showBindActivityIntent = Intent(context, BindActivity::class.java)
+            val showBindActivityIntent = Intent(context, HomeBindActivity::class.java)
             showBindActivityIntent.putExtra(BIND_ITEM_ADDRESS, _recyclerItem?.Address)
             context.startActivity(showBindActivityIntent)
         }

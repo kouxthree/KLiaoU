@@ -1,8 +1,6 @@
 package com.kliaou.ui.home
 
 import android.Manifest
-import android.app.Activity.RESULT_CANCELED
-import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
@@ -19,60 +17,65 @@ import android.graphics.Color
 import android.os.*
 import android.provider.MediaStore
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.R
-import com.kliaou.databinding.FragmentHomeBinding
+import com.kliaou.databinding.ActivityHomeBindBinding
+import com.kliaou.databinding.ActivityHomeMainBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
-import com.kliaou.ui.BindActivity
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+import android.os.Parcelable
 
-class HomeFragment : Fragment() {
-//    private lateinit var homeViewModel: HomeViewModel
+
+
+
+class HomeMainActivity : AppCompatActivity() {
     val homeViewModel:HomeViewModel by viewModels()
-    private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var _binding: ActivityHomeMainBinding
     private lateinit var recyclerAdapter: RecyclerAdapter
     private lateinit var scanResultLinearLayoutManager: LinearLayoutManager
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-//        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-        val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner, { textView.text = it })
-        return root
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.getItemId() == android.R.id.home) {
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        return true
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        //init//intent was null before onCreate
+        _binding = ActivityHomeMainBinding.inflate(layoutInflater)
+        //setContentView(R.layout.activity_bind)
+        setContentView(_binding.root)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action
+
+        val textView: TextView = _binding.textHome
+        homeViewModel.text.observe(this, { textView.text = it })
+
         //scan result list
-        scanResultLinearLayoutManager = LinearLayoutManager(activity)
-        binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
+        scanResultLinearLayoutManager = LinearLayoutManager(this)
+        _binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
         recyclerAdapter = RecyclerAdapter(scanResults)
-        binding.listviewScanresult.adapter = recyclerAdapter
+        _binding.listviewScanresult.adapter = recyclerAdapter
         //location
         requestLocationPermission()
         //bluetooth
@@ -82,10 +85,6 @@ class HomeFragment : Fragment() {
         //my image
         createMyImg()
     }
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 
     //bluetooth
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
@@ -93,33 +92,33 @@ class HomeFragment : Fragment() {
     private var isScanning = (bluetoothAdapter?.isDiscovering == true)
     private var isBroadcasting = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
     private var broadcastThread: BroadcastThread? = null
-    private var blState = BindActivity.BL_STATE_NONE
+    private var blState = HomeBindActivity.BL_STATE_NONE
     private fun createBl() {
         //check if bluetooth is available or not
         if (bluetoothAdapter == null) {
-            binding.textServerInfo1.text = "Bluetooth is not available"
+            _binding.textServerInfo1.text = "Bluetooth is not available"
         } else {
-            binding.textServerInfo1.text = "Bluetooth is available"
+            _binding.textServerInfo1.text = "Bluetooth is available"
         }
         //turn on bluetooth
         if (bluetoothAdapter?.isEnabled == true) {
-            binding.textServerInfo2.text = "enabled"
+            _binding.textServerInfo2.text = "enabled"
         } else {
-            binding.textServerInfo2.text = "disabled"
-            Toast.makeText(this.context, "Turning On Bluetooth...", Toast.LENGTH_LONG).show()
+            _binding.textServerInfo2.text = "disabled"
+            Toast.makeText(applicationContext, "Turning On Bluetooth...", Toast.LENGTH_LONG).show()
             //intent to on bluetooth
             val intentTurnOnBt = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             val startForResultTurnOnBt =
                 registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
                     when (result?.resultCode) {
                         RESULT_OK -> {
-                            Toast.makeText(this.context, "Bluetooth Turned On.", Toast.LENGTH_LONG)
+                            Toast.makeText(applicationContext, "Bluetooth Turned On.", Toast.LENGTH_SHORT)
                                 .show()
-                            binding.textServerInfo2.text = "enabled"
+                            _binding.textServerInfo2.text = "enabled"
                         }
                         RESULT_CANCELED -> {
                             Toast.makeText(
-                                this.context,
+                                applicationContext,
                                 "Bluetooth Cannot Be Turned On.",
                                 Toast.LENGTH_LONG
                             ).show()
@@ -130,7 +129,7 @@ class HomeFragment : Fragment() {
         }
         //btn_search
         setBtnSearchBkColor()
-        binding.btnSearch.setOnClickListener {
+        _binding.btnSearch.setOnClickListener {
             if (bluetoothAdapter?.isDiscovering == false) {
                 startScan()
                 scanResults.clear()//rescan
@@ -155,7 +154,7 @@ class HomeFragment : Fragment() {
                 when (result?.resultCode) {
                     RESULT_OK -> {
                         Toast.makeText(
-                            this.context,
+                            applicationContext,
                             "Bluetooth Discoverable.",
                             Toast.LENGTH_LONG
                         )
@@ -164,7 +163,7 @@ class HomeFragment : Fragment() {
                     }
                     RESULT_CANCELED -> {
                         Toast.makeText(
-                            this.context,
+                            applicationContext,
                             "Bluetooth NOT Discoverable",
                             Toast.LENGTH_LONG
                         ).show()
@@ -177,15 +176,15 @@ class HomeFragment : Fragment() {
         val startForResultTurnOffBtDiscoverable =
             registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
                 Toast.makeText(
-                    this.context,
+                    applicationContext,
                     "Bluetooth NOT Discoverable",
                     Toast.LENGTH_LONG
                 ).show()
-                binding.textServerInfo3.text = "not discoverable"
+                _binding.textServerInfo3.text = "not discoverable"
             }
         //btn_broadcast
         setBtnBroadcastBkColor()
-        binding.btnBroadcast.setOnClickListener {
+        _binding.btnBroadcast.setOnClickListener {
             if (!isBroadcasting) {
                 isBroadcasting = true
                 //turn on bluetooth discoverable
@@ -194,7 +193,7 @@ class HomeFragment : Fragment() {
                 }
                 //run broadcast thread
                 stopBroadcasting()
-                broadcastThread = BroadcastThread(BindActivity.MALE_UUID)
+                broadcastThread = BroadcastThread(HomeBindActivity.MALE_UUID)
                 broadcastThread?.start()
             } else {
                 isBroadcasting = false
@@ -211,19 +210,19 @@ class HomeFragment : Fragment() {
     private fun startScan() {
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        context?.registerReceiver(bScanResult, filter)
+        registerReceiver(bScanResult, filter)
         bluetoothAdapter?.startDiscovery()
         isScanning = true
     }
     private fun stopScan() {
-        context?.unregisterReceiver(bScanResult)
+        unregisterReceiver(bScanResult)
         bluetoothAdapter?.cancelDiscovery()
         isScanning = false
     }
     private fun setBtnSearchBkColor() {
         try {
             //biding is null when fragment not active
-            val btn = parentFragment?.view?.findViewById<FloatingActionButton>(R.id.btn_search)
+            val btn = findViewById<FloatingActionButton>(R.id.btn_search)
             if (isScanning) btn?.backgroundTintList = ColorStateList.valueOf(Color.RED)
             else {
                 btn?.backgroundTintList = ColorStateList.valueOf(Color.GRAY)
@@ -235,10 +234,18 @@ class HomeFragment : Fragment() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if(action == BluetoothDevice.ACTION_FOUND) {
+                //bluetooth device
                 val device =
                     intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                 if (device != null) {
-                    addToScanResults(device)
+                    var addflg = false//add specific devices only//bluetooth uuids
+                    val uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID)
+                    for (i in uuidExtra!!.indices) {
+                        val uuid = uuidExtra[i].toString()
+                        addflg = (HomeBindActivity.MALE_UUID.toString().compareTo(uuid) == 0)
+                        if(addflg) break
+                    }
+                    if(addflg) addToScanResults(device)
                 }
             } else if(action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED) {
                 stopScan()
@@ -258,8 +265,8 @@ class HomeFragment : Fragment() {
     private fun setBtnBroadcastBkColor() {
         try {
             //biding is null when fragment not active
-            val btn = view?.findViewById<FloatingActionButton>(R.id.btn_broadcast)
-            val txt3 = view?.findViewById<TextView>(R.id.text_server_info3)
+            val btn = findViewById<FloatingActionButton>(R.id.btn_broadcast)
+            val txt3 = findViewById<TextView>(R.id.text_server_info3)
             if (isBroadcasting){
                 btn?.backgroundTintList = ColorStateList.valueOf(Color.RED)
                 txt3?.text = "discoverable"
@@ -277,13 +284,13 @@ class HomeFragment : Fragment() {
     }
     private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
-            if(blState != BindActivity.BL_STATE_LISTEN) return
+            if(blState != HomeBindActivity.BL_STATE_LISTEN) return
             when (msg.what) {
-                BindActivity.MESSAGE_READ -> {
+                HomeBindActivity.MESSAGE_READ -> {
                     val readBuf = msg.obj as ByteArray
                     val readMessage = String(readBuf, 0, msg.arg1)
                     try {
-                        binding.textServerInfo4.text = (readMessage)
+                        _binding.textServerInfo4.text = (readMessage)
                     } catch (e: Exception) {
                         Log.e(TAG, "received message: $readMessage")
                     }
@@ -293,12 +300,12 @@ class HomeFragment : Fragment() {
     }
     private inner class BroadcastThread(uuid: UUID) : Thread() {
         private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            bluetoothAdapter?.listenUsingRfcommWithServiceRecord(BindActivity.NAME, uuid)
+            bluetoothAdapter?.listenUsingRfcommWithServiceRecord(HomeBindActivity.NAME, uuid)
         }
         private lateinit var mmInStream: InputStream
         init {
             Log.d(TAG, "create BroadcastThread")
-            blState = BindActivity.BL_STATE_LISTEN
+            blState = HomeBindActivity.BL_STATE_LISTEN
         }
 
         override fun run() {
@@ -332,12 +339,12 @@ class HomeFragment : Fragment() {
             val buffer = ByteArray(1024)
             var bytes: Int
             // Keep listening to the InputStream while connected
-            while (blState === BindActivity.BL_STATE_LISTEN) {
+            while (blState === HomeBindActivity.BL_STATE_LISTEN) {
                 try {
                     // Read from the InputStream
                     bytes = mmInStream!!.read(buffer)
                     // Send the obtained bytes to the UI Activity
-                    mHandler.obtainMessage(BindActivity.MESSAGE_READ, bytes, -1, buffer)
+                    mHandler.obtainMessage(HomeBindActivity.MESSAGE_READ, bytes, -1, buffer)
                         .sendToTarget()
                 } catch (e: IOException) {
                     Log.e(TAG, "disconnected", e)
@@ -350,7 +357,7 @@ class HomeFragment : Fragment() {
         fun cancel() {
             try {
                 mmServerSocket?.close()
-                blState == BindActivity.BL_STATE_NONE
+                blState == HomeBindActivity.BL_STATE_NONE
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the connect socket", e)
             }
@@ -361,23 +368,23 @@ class HomeFragment : Fragment() {
     private val LocationPermission = 1
     private fun requestLocationPermission() {
         if (ActivityCompat.checkSelfPermission(
-                requireContext(),
+                applicationContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
             !== PackageManager.PERMISSION_GRANTED
         ) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    requireActivity(),
+                    this,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
             ) {
                 ActivityCompat.requestPermissions(
-                    requireActivity(),
+                    this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LocationPermission
                 )
             } else {
                 ActivityCompat.requestPermissions(
-                    requireActivity(),
+                    this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LocationPermission
                 )
             }
@@ -385,26 +392,27 @@ class HomeFragment : Fragment() {
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
                                             grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             LocationPermission -> {
                 if (grantResults.isNotEmpty() && grantResults[0] ==
                     PackageManager.PERMISSION_GRANTED
                 ) {
                     if ((ContextCompat.checkSelfPermission(
-                            requireActivity(),
+                            this,
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ) ===
                                 PackageManager.PERMISSION_GRANTED)
                     ) {
                         Toast.makeText(
-                            this.context,
+                            applicationContext,
                             "Location Permission Granted",
-                            Toast.LENGTH_LONG
+                            Toast.LENGTH_SHORT
                         ).show()
                     }
                 } else {
                     Toast.makeText(
-                        this.context,
+                        applicationContext,
                         "Location Permission Is Necesary",
                         Toast.LENGTH_LONG
                     ).show()
@@ -421,7 +429,7 @@ class HomeFragment : Fragment() {
         val myimgfile: File = getPhotoFile(MY_IMG_FILE_NAME)
         val providerFile =
             FileProvider.getUriForFile(
-                this.requireContext(),
+                applicationContext,
                 "com.kliaou.fileprovider",
                 myimgfile
             )
@@ -432,18 +440,18 @@ class HomeFragment : Fragment() {
                     RESULT_OK -> {
 //                        val imageBitmap = result.data?.extras?.get("data") as Bitmap
                         val imageBitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
-                        binding.myImg.setImageBitmap(imageBitmap)
+                        _binding.myImg.setImageBitmap(imageBitmap)
                     }
                     RESULT_CANCELED -> {
                     }
                 }
             }
-        binding.myImg.setOnClickListener {
+        _binding.myImg.setOnClickListener {
             startForResult.launch(takePhotoIntent)
         }
     }
     private fun getPhotoFile(fileName: String): File {
-        val directoryStorage = activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val directoryStorage = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(fileName, ".jpg", directoryStorage)
     }
 }
