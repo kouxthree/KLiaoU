@@ -30,20 +30,14 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.R
-import com.kliaou.databinding.ActivityHomeBindBinding
 import com.kliaou.databinding.ActivityHomeMainBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
-import android.os.Parcelable
-
-
-
+import android.graphics.Bitmap
+import java.io.*
 
 class HomeMainActivity : AppCompatActivity() {
     val homeViewModel:HomeViewModel by viewModels()
@@ -210,6 +204,7 @@ class HomeMainActivity : AppCompatActivity() {
     private fun startScan() {
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        filter.addAction((BluetoothDevice.ACTION_UUID))
         registerReceiver(bScanResult, filter)
         bluetoothAdapter?.startDiscovery()
         isScanning = true
@@ -238,18 +233,22 @@ class HomeMainActivity : AppCompatActivity() {
                 val device =
                     intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                 if (device != null) {
-                    var addflg = false//add specific devices only//bluetooth uuids
-                    val uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID)
-                    for (i in uuidExtra!!.indices) {
-                        val uuid = uuidExtra[i].toString()
-                        addflg = (HomeBindActivity.MALE_UUID.toString().compareTo(uuid) == 0)
-                        if(addflg) break
-                    }
-                    if(addflg) addToScanResults(device)
+//                    var addflg = false//add specific devices only//bluetooth uuids
+//                    val uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID)
+//                    if(uuidExtra != null) {
+//                        for (i in uuidExtra!!.indices) {
+//                            val uuid = uuidExtra[i].toString()
+//                            addflg = (HomeBindActivity.MALE_UUID.toString().compareTo(uuid) == 0)
+//                            if (addflg) break
+//                        }
+//                    }
+//                    if(addflg) addToScanResults(device)
+                    addToScanResults(device)
                 }
             } else if(action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED) {
                 stopScan()
                 setBtnSearchBkColor()
+            } else if(action == BluetoothDevice.ACTION_UUID) {
             }
         }
     }
@@ -290,7 +289,7 @@ class HomeMainActivity : AppCompatActivity() {
                     val readBuf = msg.obj as ByteArray
                     val readMessage = String(readBuf, 0, msg.arg1)
                     try {
-                        _binding.textServerInfo4.text = (readMessage)
+                        _binding.textReceivedMsg.text = (readMessage)
                     } catch (e: Exception) {
                         Log.e(TAG, "received message: $readMessage")
                     }
@@ -424,7 +423,6 @@ class HomeMainActivity : AppCompatActivity() {
 
     //my image
     private fun createMyImg() {
-        val MY_IMG_FILE_NAME: String = "myimg"
         val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val myimgfile: File = getPhotoFile(MY_IMG_FILE_NAME)
         val providerFile =
@@ -438,8 +436,11 @@ class HomeMainActivity : AppCompatActivity() {
             registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
                 when (result?.resultCode) {
                     RESULT_OK -> {
-//                        val imageBitmap = result.data?.extras?.get("data") as Bitmap
-                        val imageBitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
+                        //val imageBitmap = result.data?.extras?.get("data") as Bitmap
+                        var imageBitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
+                        //compress image
+                        imageBitmap = compressImage(imageBitmap)
+                        //show image
                         _binding.myImg.setImageBitmap(imageBitmap)
                     }
                     RESULT_CANCELED -> {
@@ -453,6 +454,24 @@ class HomeMainActivity : AppCompatActivity() {
     private fun getPhotoFile(fileName: String): File {
         val directoryStorage = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(fileName, ".jpg", directoryStorage)
+    }
+    private fun compressImage(image: Bitmap): Bitmap? {
+        val baos = ByteArrayOutputStream()
+        var options = 100
+        //read data
+        image.compress(Bitmap.CompressFormat.JPEG, options, baos)
+        //compress to 300kb
+        while ((baos.toByteArray().size / 1024) > 300) {
+            baos.reset()
+            options -= 10
+            image.compress(Bitmap.CompressFormat.JPEG, options, baos)
+        }
+        val isBm = ByteArrayInputStream(baos.toByteArray())
+        return BitmapFactory.decodeStream(isBm, null, null)
+    }
+
+    companion object {
+        val MY_IMG_FILE_NAME = "myimg"
     }
 }
 

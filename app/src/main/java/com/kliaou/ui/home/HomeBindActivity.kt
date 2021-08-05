@@ -5,10 +5,9 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.ContentValues.TAG
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.*
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -16,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.databinding.ActivityHomeBindBinding
 import com.kliaou.scanresult.RecyclerAdapter
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -24,6 +24,7 @@ import java.util.*
 class HomeBindActivity : AppCompatActivity() {
     private lateinit var _binding: ActivityHomeBindBinding
     private lateinit var _mac: String
+    private lateinit var _myimgbitmap: Bitmap
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //init//intent was null before onCreate
@@ -32,9 +33,15 @@ class HomeBindActivity : AppCompatActivity() {
         setContentView(_binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action
 
+        //remote mac address
         _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS).toString()
         device = bluetoothAdapter?.getRemoteDevice(_mac)!!
         _binding.txtUuid.text = _mac.toString()
+
+        //my image bitmap
+        val directoryStorage = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val myimgfile = File.createTempFile(HomeMainActivity.MY_IMG_FILE_NAME, ".jpg", directoryStorage)
+        _myimgbitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
 
         //bluetooth
         createBl()
@@ -55,7 +62,7 @@ class HomeBindActivity : AppCompatActivity() {
 
     //bluetooth
     companion object {
-        val NAME = "KLIAOU"
+        val NAME = "kliaouservice"
         val MALE_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66")
         val FEMALE_UUID = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66")
 
@@ -143,7 +150,7 @@ class HomeBindActivity : AppCompatActivity() {
         private val mmOutStream: OutputStream?
         override fun run() {
             Log.i(TAG, "BEGIN mConnectedThread")
-            val buffer = ByteArray(1024)
+            val buffer = ByteArray(1024*1024)//max size == 1M
             var bytes: Int
             // Keep listening to the InputStream while connected
             while (blState === BL_STATE_CONNECTED) {
@@ -227,19 +234,25 @@ class HomeBindActivity : AppCompatActivity() {
     }
     private fun createMsgView() {
         _binding.btnSend.setOnClickListener {
+            //send message
             sendMessage(_binding.txtOut.text.toString())
+            //send image
+            sendImage(_myimgbitmap)
         }
     }
     private fun sendMessage(message: String) {
         if (blState !== BL_STATE_CONNECTED) {
-            Toast.makeText(applicationContext, "Not Connected", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "Not Connected", Toast.LENGTH_SHORT).show()
             return
         }
         if (message.length > 0) {
-            val send = message.toByteArray()
-            connectedThread?.write(send)
+            val sendmsg = message.toByteArray()
+            connectedThread?.write(sendmsg)
             _binding.txtOut.setText(null)
         }
+    }
+    private fun sendImage(image: Bitmap) {
+
     }
 
 }
