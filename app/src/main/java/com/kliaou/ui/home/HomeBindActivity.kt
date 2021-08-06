@@ -15,16 +15,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.databinding.ActivityHomeBindBinding
 import com.kliaou.scanresult.RecyclerAdapter
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.util.*
 
 class HomeBindActivity : AppCompatActivity() {
     private lateinit var _binding: ActivityHomeBindBinding
     private lateinit var _mac: String
-    private lateinit var _myimgbitmap: Bitmap
+    private var _myimgbitmap: Bitmap? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //init//intent was null before onCreate
@@ -39,14 +36,13 @@ class HomeBindActivity : AppCompatActivity() {
         _binding.txtUuid.text = _mac.toString()
 
         //my image bitmap
-        val directoryStorage = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val myimgfile = File.createTempFile(HomeMainActivity.MY_IMG_FILE_NAME, ".jpg", directoryStorage)
-        _myimgbitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
+        val myimgfile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!.path + "/" + HomeMainActivity.MY_IMG_FILE_NAME + ".jpg")
+        if(myimgfile.exists()) _myimgbitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
 
         //bluetooth
         createBl()
-        //message view
-        createMsgView()
+        //send view
+        createSendView()
 
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -76,6 +72,7 @@ class HomeBindActivity : AppCompatActivity() {
         val MESSAGE_WRITE = 3
         val MESSAGE_DEVICE_NAME = 4
         val MESSAGE_TOAST = 5
+        val IMAGE_RECEIVED = 6
     }
     private var blState = BL_STATE_NONE
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
@@ -150,7 +147,7 @@ class HomeBindActivity : AppCompatActivity() {
         private val mmOutStream: OutputStream?
         override fun run() {
             Log.i(TAG, "BEGIN mConnectedThread")
-            val buffer = ByteArray(1024*1024)//max size == 1M
+            val buffer = ByteArray(1024)
             var bytes: Int
             // Keep listening to the InputStream while connected
             while (blState === BL_STATE_CONNECTED) {
@@ -232,19 +229,35 @@ class HomeBindActivity : AppCompatActivity() {
             }
         }
     }
-    private fun createMsgView() {
-        _binding.btnSend.setOnClickListener {
+    //send
+    private fun checkConnectState(): Boolean {
+        if (blState != BL_STATE_CONNECTED) {
+            Toast.makeText(applicationContext, "Not Connected", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return true
+    }
+    private fun createSendView() {
+        _binding.btnSendMsg.setOnClickListener {
+            //not connected
+            if(!checkConnectState()) return@setOnClickListener
             //send message
             sendMessage(_binding.txtOut.text.toString())
+        }
+        //my image
+        _binding.btnSendImg.isEnabled = false
+        _myimgbitmap?.let {
+            _binding.myImg.setImageBitmap(_myimgbitmap)
+            _binding.btnSendImg.isEnabled = true
+        }
+        _binding.btnSendImg.setOnClickListener {
+            //not connected
+            if(!checkConnectState()) return@setOnClickListener
             //send image
-            sendImage(_myimgbitmap)
+            _myimgbitmap?.let { sendImage(it) }
         }
     }
     private fun sendMessage(message: String) {
-        if (blState !== BL_STATE_CONNECTED) {
-            Toast.makeText(applicationContext, "Not Connected", Toast.LENGTH_SHORT).show()
-            return
-        }
         if (message.length > 0) {
             val sendmsg = message.toByteArray()
             connectedThread?.write(sendmsg)
@@ -252,7 +265,28 @@ class HomeBindActivity : AppCompatActivity() {
         }
     }
     private fun sendImage(image: Bitmap) {
-
+        //image -> inputstream
+        val imageByteOutputStream = ByteArrayOutputStream()
+        image.compress(Bitmap.CompressFormat.JPEG, 100, imageByteOutputStream)
+        val imageByteArray = imageByteOutputStream.toByteArray()
+        val imageByteInputStream = ByteArrayInputStream(imageByteArray)
+        //inpustream -> write to remote
+        val BUF_SIZE = 1024
+        val buffer = ByteArray(BUF_SIZE)
+        //sending start
+        Log.i(TAG, "BEGIN image send")
+        connectedThread?.write(HomeMainActivity.MY_IMG_SEND_START.toByteArray())
+        //sending size
+        Log.i(TAG, "image size: ${imageByteArray.size}")
+        connectedThread?.write(imageByteArray.size.toString().toByteArray())
+        //sending main
+        Log.i(TAG, "start sending")
+        while (imageByteInputStream.read(buffer, 0, BUF_SIZE) != -1) {
+            connectedThread?.write(buffer)
+        }
+        //sending end
+        Log.i(TAG, "END image send")
+        connectedThread?.write(HomeMainActivity.MY_IMG_SEND_END.toByteArray())
     }
 
 }

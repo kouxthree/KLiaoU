@@ -38,6 +38,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 import android.graphics.Bitmap
 import java.io.*
+import java.nio.file.Paths
+import android.os.Environment
 
 class HomeMainActivity : AppCompatActivity() {
     val homeViewModel:HomeViewModel by viewModels()
@@ -285,6 +287,7 @@ class HomeMainActivity : AppCompatActivity() {
         override fun handleMessage(msg: Message) {
             if(blState != HomeBindActivity.BL_STATE_LISTEN) return
             when (msg.what) {
+                //message received
                 HomeBindActivity.MESSAGE_READ -> {
                     val readBuf = msg.obj as ByteArray
                     val readMessage = String(readBuf, 0, msg.arg1)
@@ -292,6 +295,15 @@ class HomeMainActivity : AppCompatActivity() {
                         _binding.textReceivedMsg.text = (readMessage)
                     } catch (e: Exception) {
                         Log.e(TAG, "received message: $readMessage")
+                    }
+                }
+                //image received
+                HomeBindActivity.IMAGE_RECEIVED -> {
+                    val remoteimg = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!.path + "/" + HomeMainActivity.REMOTE_IMAGE_FILE_NAME + ".jpg")
+                    var _remoteimgbitmap: Bitmap? = null
+                    if(remoteimg.exists()) _remoteimgbitmap = BitmapFactory.decodeFile(remoteimg.absolutePath)
+                    _remoteimgbitmap?.let {
+                        _binding.remoteImg.setImageBitmap(_remoteimgbitmap)
                     }
                 }
             }
@@ -342,15 +354,51 @@ class HomeMainActivity : AppCompatActivity() {
                 try {
                     // Read from the InputStream
                     bytes = mmInStream!!.read(buffer)
-                    // Send the obtained bytes to the UI Activity
-                    mHandler.obtainMessage(HomeBindActivity.MESSAGE_READ, bytes, -1, buffer)
-                        .sendToTarget()
+                    //check if received image
+                    if(MY_IMG_SEND_START.compareTo(String(buffer)) == 0) {
+                        //image received
+                        receiveImage()
+                        mHandler.obtainMessage(HomeBindActivity.IMAGE_RECEIVED).sendToTarget()
+                    }
+                    else
+                    {
+                        //text message received
+                        // Send the obtained bytes to the UI Activity
+                        mHandler.obtainMessage(HomeBindActivity.MESSAGE_READ, bytes, -1, buffer)
+                            .sendToTarget()
+                    }
                 } catch (e: IOException) {
                     Log.e(TAG, "disconnected", e)
                     cancel()
                     break
                 }
             }
+        }
+        private fun receiveImage() {
+            val buffer = ByteArray(1024)
+            var bytes: Int
+            Log.i(TAG, "BEGIN image receive")
+            bytes = mmInStream!!.read(buffer)
+            val imagesize = String(buffer).toInt()
+            Log.i(TAG, "image size: ${imagesize}")
+            val remoteImgFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!.path + "/" + REMOTE_IMAGE_FILE_NAME + ".jpg")
+            if(!remoteImgFile.exists()) {
+                remoteImgFile.createNewFile()
+            }
+            val remoteImageOutputStream = FileOutputStream(remoteImgFile)
+            var bytesReceived = 0
+            while (bytesReceived < imagesize) {
+                bytes = mmInStream!!.read(buffer)
+                if (bytes > 0) {
+                    bytesReceived += bytes
+                    remoteImageOutputStream.write(buffer, 0, bytes);
+                } else {
+                    Log.d(TAG, "Read received -1, breaking");
+                    break;
+                }
+            }
+            remoteImageOutputStream.close()
+            Log.i(TAG, "END image receive")
         }
 
         fun cancel() {
@@ -423,13 +471,14 @@ class HomeMainActivity : AppCompatActivity() {
 
     //my image
     private fun createMyImg() {
+        deleteMyImgFile()//delete exists
         val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val myimgfile: File = getPhotoFile(MY_IMG_FILE_NAME)
+        val myimgfiletemp: File = getMyImgFileTemp()
         val providerFile =
             FileProvider.getUriForFile(
                 applicationContext,
                 "com.kliaou.fileprovider",
-                myimgfile
+                myimgfiletemp
             )
         takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, providerFile)
         val startForResult =
@@ -437,11 +486,13 @@ class HomeMainActivity : AppCompatActivity() {
                 when (result?.resultCode) {
                     RESULT_OK -> {
                         //val imageBitmap = result.data?.extras?.get("data") as Bitmap
-                        var imageBitmap = BitmapFactory.decodeFile(myimgfile.absolutePath)
+                        var imageBitmap = BitmapFactory.decodeFile(myimgfiletemp.absolutePath)
                         //compress image
                         imageBitmap = compressImage(imageBitmap)
                         //show image
                         _binding.myImg.setImageBitmap(imageBitmap)
+                        //save to file
+                        saveBitmapToFile(imageBitmap)
                     }
                     RESULT_CANCELED -> {
                     }
@@ -451,10 +502,12 @@ class HomeMainActivity : AppCompatActivity() {
             startForResult.launch(takePhotoIntent)
         }
     }
-    private fun getPhotoFile(fileName: String): File {
-        val directoryStorage = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(fileName, ".jpg", directoryStorage)
+    private fun getMyImgFileTemp(): File {
+        return File.createTempFile(MY_IMG_FILE_NAME, ".jpg", getExternalFilesDir(Environment.DIRECTORY_PICTURES))
     }
+    private fun getMyImgFile():File {
+        return File(getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!.path + "/" + MY_IMG_FILE_NAME + ".jpg")
+     }
     private fun compressImage(image: Bitmap): Bitmap? {
         val baos = ByteArrayOutputStream()
         var options = 100
@@ -469,9 +522,30 @@ class HomeMainActivity : AppCompatActivity() {
         val isBm = ByteArrayInputStream(baos.toByteArray())
         return BitmapFactory.decodeStream(isBm, null, null)
     }
+    private fun saveBitmapToFile(image: Bitmap) {
+        try {
+            var myimg = getMyImgFile()
+            if(!myimg.exists()) {
+                myimg.createNewFile()
+            }
+            val fOut = FileOutputStream(myimg)
+            image.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
+            fOut.flush()
+            fOut.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not save file $MY_IMG_FILE_NAME")
+        }
+    }
+    private fun deleteMyImgFile() {
+        val myimgfile = getMyImgFile()
+        if (myimgfile.exists()) myimgfile.delete()
+    }
 
     companion object {
         val MY_IMG_FILE_NAME = "myimg"
+        val MY_IMG_SEND_START = "##start##"
+        val MY_IMG_SEND_END = "##end##"
+        val REMOTE_IMAGE_FILE_NAME = "remoteimg"
     }
 }
 
