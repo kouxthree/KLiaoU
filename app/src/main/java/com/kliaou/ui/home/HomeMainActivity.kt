@@ -355,9 +355,10 @@ class HomeMainActivity : AppCompatActivity() {
                     // Read from the InputStream
                     bytes = mmInStream!!.read(buffer)
                     //check if received image
-                    if(MY_IMG_SEND_START.compareTo(String(buffer)) == 0) {
+                    val strReceived = String(buffer,0, bytes)
+                    if(MY_IMG_SEND_START.compareTo(strReceived.take(MY_IMG_SEND_START.length)) == 0) {
                         //image received
-                        receiveImage()
+                        receiveImage(strReceived)
                         mHandler.obtainMessage(HomeBindActivity.IMAGE_RECEIVED).sendToTarget()
                     }
                     else
@@ -374,24 +375,27 @@ class HomeMainActivity : AppCompatActivity() {
                 }
             }
         }
-        private fun receiveImage() {
+        private fun receiveImage(strPrefix: String) {
             val buffer = ByteArray(1024)
             var bytes: Int
             Log.i(TAG, "BEGIN image receive")
             bytes = mmInStream!!.read(buffer)
-            val imagesize = String(buffer).toInt()
+            val strReceived = String(buffer,0, bytes)
+            var imagesizestr = strReceived.substring(0, 16)
+            val imagesize = imagesizestr.substring(2, 14).toInt()
             Log.i(TAG, "image size: ${imagesize}")
             val remoteImgFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!.path + "/" + REMOTE_IMAGE_FILE_NAME + ".jpg")
             if(!remoteImgFile.exists()) {
                 remoteImgFile.createNewFile()
             }
             val remoteImageOutputStream = FileOutputStream(remoteImgFile)
-            var bytesReceived = 0
+            var bytesReceived = bytes - 16
+            remoteImageOutputStream.write(buffer, 16, bytesReceived)
             while (bytesReceived < imagesize) {
                 bytes = mmInStream!!.read(buffer)
                 if (bytes > 0) {
                     bytesReceived += bytes
-                    remoteImageOutputStream.write(buffer, 0, bytes);
+                    remoteImageOutputStream.write(buffer, 0, bytes)
                 } else {
                     Log.d(TAG, "Read received -1, breaking");
                     break;
@@ -545,6 +549,7 @@ class HomeMainActivity : AppCompatActivity() {
         val MY_IMG_FILE_NAME = "myimg"
         val MY_IMG_SEND_START = "##start##"
         val MY_IMG_SEND_END = "##end##"
+        val MY_IMG_SEND_SEPERATOR = "##"
         val REMOTE_IMAGE_FILE_NAME = "remoteimg"
     }
 }

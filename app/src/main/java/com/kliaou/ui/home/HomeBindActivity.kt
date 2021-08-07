@@ -13,8 +13,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.kliaou.databinding.ActivityHomeBindBinding
 import com.kliaou.scanresult.RecyclerAdapter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.*
 import java.util.*
 
@@ -72,7 +75,9 @@ class HomeBindActivity : AppCompatActivity() {
         val MESSAGE_WRITE = 3
         val MESSAGE_DEVICE_NAME = 4
         val MESSAGE_TOAST = 5
-        val IMAGE_RECEIVED = 6
+        val IMAGE_WRITE = 6
+
+        val IMAGE_RECEIVED = 7
     }
     private var blState = BL_STATE_NONE
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
@@ -165,11 +170,11 @@ class HomeBindActivity : AppCompatActivity() {
             }
         }
 
-        fun write(buffer: ByteArray?) {
+        fun write(buffer: ByteArray?, msgtype: Int) {
             try {
                 mmOutStream!!.write(buffer)
                 // Share the sent message back to the UI Activity
-                mHandler.obtainMessage(MESSAGE_WRITE, -1, -1, buffer)
+                 mHandler.obtainMessage(msgtype, -1, -1, buffer)
                     .sendToTarget()
             } catch (e: IOException) {
                 Log.e(TAG, "Exception during write", e)
@@ -221,6 +226,9 @@ class HomeBindActivity : AppCompatActivity() {
                     val writeMessage = String(writeBuf)
                     _binding.txtConversation.append("\nMe:  $writeMessage")
                 }
+                IMAGE_WRITE -> {
+                    _binding.txtConversation.append("\nMe:  image sending")
+                }
                 MESSAGE_READ -> {
                     val readBuf = msg.obj as ByteArray
                     val readMessage = String(readBuf, 0, msg.arg1)
@@ -260,33 +268,45 @@ class HomeBindActivity : AppCompatActivity() {
     private fun sendMessage(message: String) {
         if (message.length > 0) {
             val sendmsg = message.toByteArray()
-            connectedThread?.write(sendmsg)
+            connectedThread?.write(sendmsg, MESSAGE_WRITE)
             _binding.txtOut.setText(null)
         }
     }
     private fun sendImage(image: Bitmap) {
-        //image -> inputstream
-        val imageByteOutputStream = ByteArrayOutputStream()
-        image.compress(Bitmap.CompressFormat.JPEG, 100, imageByteOutputStream)
-        val imageByteArray = imageByteOutputStream.toByteArray()
-        val imageByteInputStream = ByteArrayInputStream(imageByteArray)
-        //inpustream -> write to remote
-        val BUF_SIZE = 1024
-        val buffer = ByteArray(BUF_SIZE)
-        //sending start
-        Log.i(TAG, "BEGIN image send")
-        connectedThread?.write(HomeMainActivity.MY_IMG_SEND_START.toByteArray())
-        //sending size
-        Log.i(TAG, "image size: ${imageByteArray.size}")
-        connectedThread?.write(imageByteArray.size.toString().toByteArray())
-        //sending main
-        Log.i(TAG, "start sending")
-        while (imageByteInputStream.read(buffer, 0, BUF_SIZE) != -1) {
-            connectedThread?.write(buffer)
+        lifecycleScope.launch {
+            //image -> inputstream
+            val imageByteOutputStream = ByteArrayOutputStream()
+            image.compress(Bitmap.CompressFormat.JPEG, 100, imageByteOutputStream)
+            val imageByteArray = imageByteOutputStream.toByteArray()
+            val imageByteInputStream = ByteArrayInputStream(imageByteArray)
+            //inpustream -> write to remote
+            val BUF_SIZE = 1024
+            val buffer = ByteArray(BUF_SIZE)
+            //sending start
+            Log.i(TAG, "BEGIN image send")
+            connectedThread?.write(HomeMainActivity.MY_IMG_SEND_START.toByteArray(), MESSAGE_WRITE)
+            delay(500L)
+            //sending size
+            Log.i(TAG, "image size: ${imageByteArray.size}")
+            connectedThread?.write(
+                HomeMainActivity.MY_IMG_SEND_SEPERATOR.toByteArray(),
+                MESSAGE_WRITE
+            )
+            var sizestring = imageByteArray.size.toString().padStart(12, '0')
+            connectedThread?.write(sizestring.toByteArray(), MESSAGE_WRITE)
+            connectedThread?.write(
+                HomeMainActivity.MY_IMG_SEND_SEPERATOR.toByteArray(),
+                MESSAGE_WRITE
+            )
+            //sending main
+            Log.i(TAG, "start sending")
+            while (imageByteInputStream.read(buffer, 0, BUF_SIZE) != -1) {
+                connectedThread?.write(buffer, IMAGE_WRITE)
+            }
+//            //sending end
+//            Log.i(TAG, "END image send")
+//            connectedThread?.write(HomeMainActivity.MY_IMG_SEND_END.toByteArray(), MESSAGE_WRITE)
         }
-        //sending end
-        Log.i(TAG, "END image send")
-        connectedThread?.write(HomeMainActivity.MY_IMG_SEND_END.toByteArray())
     }
 
 }
