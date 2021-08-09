@@ -38,8 +38,13 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 import android.graphics.Bitmap
 import java.io.*
-import java.nio.file.Paths
 import android.os.Environment
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class HomeMainActivity : AppCompatActivity() {
     val homeViewModel:HomeViewModel by viewModels()
@@ -86,7 +91,8 @@ class HomeMainActivity : AppCompatActivity() {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val scanResults: ArrayList<RecyclerItem> by lazy() { ArrayList() }
     private var isScanning = (bluetoothAdapter?.isDiscovering == true)
-    private var isBroadcasting = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+    //private var isBroadcasting = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+    private var isBroadcasting = false
     private var broadcastThread: BroadcastThread? = null
     private var blState = HomeBindActivity.BL_STATE_NONE
     private fun createBl() {
@@ -179,6 +185,13 @@ class HomeMainActivity : AppCompatActivity() {
                 _binding.textServerInfo3.text = "not discoverable"
             }
         //btn_broadcast
+//        val isb: LiveData<Boolean> =  MutableLiveData<Boolean>().apply {
+//            value = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+//        }
+//        isb.observe(this, {
+//            isBroadcasting = it
+//            setBtnBroadcastBkColor()
+//        })
         setBtnBroadcastBkColor()
         _binding.btnBroadcast.setOnClickListener {
             if (!isBroadcasting) {
@@ -191,6 +204,7 @@ class HomeMainActivity : AppCompatActivity() {
                 stopBroadcasting()
                 broadcastThread = BroadcastThread(HomeBindActivity.MALE_UUID)
                 broadcastThread?.start()
+                countDownBroadcasting(BROADCAST_TIMEOUT.toInt()/1000)
             } else {
                 isBroadcasting = false
                 startForResultTurnOffBtDiscoverable.launch(intentTurnOffBtDiscoverable)
@@ -262,7 +276,7 @@ class HomeMainActivity : AppCompatActivity() {
         }
     }
     //broadcast
-    private val BROADCAST_TIMEOUT: Long = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES)
+    private val BROADCAST_TIMEOUT: Long = TimeUnit.MILLISECONDS.convert(120, TimeUnit.SECONDS)//MAX=300s
     private fun setBtnBroadcastBkColor() {
         try {
             //biding is null when fragment not active
@@ -281,6 +295,21 @@ class HomeMainActivity : AppCompatActivity() {
     private fun stopBroadcasting() {
         if(broadcastThread != null) {
             broadcastThread?.cancel()
+        }
+    }
+    private fun countDownBroadcasting(counts: Int) {
+        if(!isBroadcasting) return
+        lifecycleScope.launch {
+            var tops = counts
+            val txt3 = findViewById<TextView>(R.id.text_server_info3)
+            while (tops > 0) {
+                tops--
+                delay(1000)
+                txt3?.text = tops.toString()
+            }
+            stopBroadcasting()
+            isBroadcasting = false
+            setBtnBroadcastBkColor()
         }
     }
     private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
@@ -518,13 +547,14 @@ class HomeMainActivity : AppCompatActivity() {
         //read data
         image.compress(Bitmap.CompressFormat.JPEG, options, baos)
         //compress to 300kb
-        while ((baos.toByteArray().size / 1024) > 300) {
+        while ((baos.toByteArray().size / 1024) > 300 ) {
             baos.reset()
             options -= 10
             image.compress(Bitmap.CompressFormat.JPEG, options, baos)
+            if(options <= 10) break
         }
         val isBm = ByteArrayInputStream(baos.toByteArray())
-        return BitmapFactory.decodeStream(isBm, null, null)
+        return BitmapFactory.decodeStream(isBm,null,null)
     }
     private fun saveBitmapToFile(image: Bitmap) {
         try {
