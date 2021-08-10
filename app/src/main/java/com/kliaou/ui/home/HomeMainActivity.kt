@@ -504,7 +504,7 @@ class HomeMainActivity : AppCompatActivity() {
 
     //my image
     private fun createMyImg() {
-        deleteMyImgFile()//delete exists
+        //deleteMyImgFile()//delete exists
         val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val myimgfiletemp: File = getMyImgFileTemp()
         val providerFile =
@@ -570,10 +570,10 @@ class HomeMainActivity : AppCompatActivity() {
             Log.e(TAG, "Could not save file $MY_IMG_FILE_NAME")
         }
     }
-    private fun deleteMyImgFile() {
-        val myimgfile = getMyImgFile()
-        if (myimgfile.exists()) myimgfile.delete()
-    }
+//    private fun deleteMyImgFile() {
+//        val myimgfile = getMyImgFile()
+//        if (myimgfile.exists()) myimgfile.delete()
+//    }
 
     companion object {
         val MY_IMG_FILE_NAME = "myimg"

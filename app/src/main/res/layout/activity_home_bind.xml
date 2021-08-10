@@ -53,15 +53,21 @@
             android:layout_height="wrap_content"
             android:text="send message" />
 
-        <TextView
-            android:id="@+id/txt_conversation"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="147dp"
-            android:ems="10"
-            android:gravity="start|top"
-            android:inputType="textMultiLine"
-            android:text="TextIn"
-            android:textSize="24sp" />
+            android:layout_height="147dp">
+
+            <TextView
+                android:id="@+id/txt_conversation"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:ems="10"
+                android:gravity="start|top"
+                android:inputType="textMultiLine"
+                android:text="TextIn"
+                android:textSize="24sp"
+                tools:ignore="TouchTargetSizeCheck" />
+        </ScrollView>
         <Button
             android:id="@+id/btn_send_img"
             android:layout_width="match_parent"
