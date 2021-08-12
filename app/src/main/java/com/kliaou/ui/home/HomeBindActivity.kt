@@ -88,7 +88,7 @@ class HomeBindActivity : AppCompatActivity() {
             try {
                 device = bluetoothAdapter?.getRemoteDevice(_mac)!!
                 _uuid = MALE_UUID
-                if (bluetoothAdapter?.isDiscovering == true) {
+                if (bluetoothAdapter.isDiscovering == true) {
                     bluetoothAdapter.cancelDiscovery()
                 }
                 //run connect thread
@@ -127,9 +127,9 @@ class HomeBindActivity : AppCompatActivity() {
         override fun run() {
             bluetoothAdapter?.cancelDiscovery()
             try {
-                mmSocket!!.connect()
+                mmSocket.connect()
                 // Start the connected thread
-                connectedThread = ConnectedThread(mmSocket!!)
+                connectedThread = ConnectedThread(mmSocket)
                 connectedThread?.start()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not connect socket", e)
@@ -139,7 +139,7 @@ class HomeBindActivity : AppCompatActivity() {
 
         fun cancel() {
             try {
-                mmSocket?.close()
+                mmSocket.close()
                 blState = BL_STATE_NONE
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the client socket", e)
@@ -155,7 +155,7 @@ class HomeBindActivity : AppCompatActivity() {
             val buffer = ByteArray(1024)
             var bytes: Int
             // Keep listening to the InputStream while connected
-            while (blState === BL_STATE_CONNECTED) {
+            while (blState == BL_STATE_CONNECTED) {
                 try {
                     // Read from the InputStream
                     bytes = mmInStream!!.read(buffer)

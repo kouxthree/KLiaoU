@@ -12,12 +12,14 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.*
 import android.provider.MediaStore
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -27,24 +29,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.R
 import com.kliaou.databinding.ActivityHomeMainBinding
 import com.kliaou.scanresult.RecyclerAdapter
 import com.kliaou.scanresult.RecyclerItem
-import java.util.*
-import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
-import android.graphics.Bitmap
+import kotlinx.coroutines.*
 import java.io.*
-import android.os.Environment
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import java.util.*
+import kotlin.collections.ArrayList
 
 class HomeMainActivity : AppCompatActivity() {
     val homeViewModel:HomeViewModel by viewModels()
@@ -81,8 +76,6 @@ class HomeMainActivity : AppCompatActivity() {
         requestLocationPermission()
         //bluetooth
         createBl()
-        //restore scan results
-        restoreScanResults()
         //my image
         createMyImg()
     }
@@ -136,7 +129,7 @@ class HomeMainActivity : AppCompatActivity() {
                 startScan()
                 scanResults.clear()//rescan
                 //paired devices
-                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
                 pairedDevices?.forEach { device ->
                     addToScanResults(device)
 //                    val deviceName = device.name
@@ -159,9 +152,7 @@ class HomeMainActivity : AppCompatActivity() {
                             applicationContext,
                             "Bluetooth Discoverable.",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
-
+                        ).show()
                     }
                     RESULT_CANCELED -> {
                         Toast.makeText(
@@ -173,17 +164,17 @@ class HomeMainActivity : AppCompatActivity() {
                 }
             }
         //make bluetooth non-discoverable
-        val intentTurnOffBtDiscoverable = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
-        intentTurnOffBtDiscoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1);
-        val startForResultTurnOffBtDiscoverable =
-            registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
-                Toast.makeText(
-                    applicationContext,
-                    "Bluetooth NOT Discoverable",
-                    Toast.LENGTH_LONG
-                ).show()
-                _binding.textServerInfo3.text = "not discoverable"
-            }
+//        val intentTurnOffBtDiscoverable = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+//        intentTurnOffBtDiscoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1);
+//        val startForResultTurnOffBtDiscoverable =
+//            registerForActivityResult(StartActivityForResult()) {
+//                Toast.makeText(
+//                    applicationContext,
+//                    "Bluetooth NOT Discoverable",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//                _binding.textServerInfo3.text = "not discoverable"
+//            }
         //btn_broadcast
 //        val isb: LiveData<Boolean> =  MutableLiveData<Boolean>().apply {
 //            value = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
@@ -204,17 +195,15 @@ class HomeMainActivity : AppCompatActivity() {
                 stopBroadcasting()
                 broadcastThread = BroadcastThread(HomeBindActivity.MALE_UUID)
                 broadcastThread?.start()
-                countDownBroadcasting(BROADCAST_TIMEOUT.toInt()/1000)
+                countDownBroadcasting(BROADCAST_TIMEOUT.toInt())
             } else {
                 isBroadcasting = false
-                startForResultTurnOffBtDiscoverable.launch(intentTurnOffBtDiscoverable)
+//                startForResultTurnOffBtDiscoverable.launch(intentTurnOffBtDiscoverable)
                 stopBroadcasting()
+                countDownBroadcasting(0)
             }
             setBtnBroadcastBkColor()
         }
-    }
-    //for data communication
-    private fun restoreScanResults() {
     }
     //scan
     private fun startScan() {
@@ -276,7 +265,8 @@ class HomeMainActivity : AppCompatActivity() {
         }
     }
     //broadcast
-    private val BROADCAST_TIMEOUT: Long = TimeUnit.MILLISECONDS.convert(120, TimeUnit.SECONDS)//MAX=300s
+    private var countdownJob: Job? = null
+    private val BROADCAST_TIMEOUT: Long = 100//TimeUnit.MILLISECONDS.convert(100, TimeUnit.SECONDS)//MAX=300s
     private fun setBtnBroadcastBkColor() {
         try {
             //biding is null when fragment not active
@@ -298,18 +288,21 @@ class HomeMainActivity : AppCompatActivity() {
         }
     }
     private fun countDownBroadcasting(counts: Int) {
+        countdownJob?.cancel()
         if(!isBroadcasting) return
-        lifecycleScope.launch {
-            var tops = counts
-            val txt3 = findViewById<TextView>(R.id.text_server_info3)
-            while (tops > 0) {
-                tops--
-                delay(1000)
-                txt3?.text = tops.toString()
+        runBlocking {
+            countdownJob = lifecycleScope.launch {
+                var tops = counts
+                val txt3 = findViewById<TextView>(R.id.text_server_info3)
+                while (tops > 0 && isActive) {
+                    tops--
+                    delay(1000)
+                    txt3?.text = tops.toString()
+                }
+                stopBroadcasting()
+                isBroadcasting = false
+                setBtnBroadcastBkColor()
             }
-            stopBroadcasting()
-            isBroadcasting = false
-            setBtnBroadcastBkColor()
         }
     }
     private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
@@ -368,7 +361,7 @@ class HomeMainActivity : AppCompatActivity() {
 
         private fun manageAcceptedSocket(socket: BluetoothSocket) {
             Log.i(TAG, "BEGIN manageAcceptedSocket")
-            var tmpIn: InputStream? = null
+            var tmpIn: InputStream?
             // Get input streams
             try {
                 tmpIn = socket.inputStream
@@ -379,15 +372,15 @@ class HomeMainActivity : AppCompatActivity() {
             val buffer = ByteArray(1024)
             var bytes: Int
             // Keep listening to the InputStream while connected
-            while (blState === HomeBindActivity.BL_STATE_LISTEN) {
+            while (blState == HomeBindActivity.BL_STATE_LISTEN) {
                 try {
                     // Read from the InputStream
-                    bytes = mmInStream!!.read(buffer)
+                    bytes = mmInStream.read(buffer)
                     //check if received image
                     val strReceived = String(buffer,0, bytes)
                     if(MY_IMG_SEND_START.compareTo(strReceived.take(MY_IMG_SEND_START.length)) == 0) {
                         //image received
-                        receiveImage(strReceived)
+                        receiveImage()
                         mHandler.obtainMessage(HomeBindActivity.IMAGE_RECEIVED).sendToTarget()
                     }
                     else
@@ -404,11 +397,11 @@ class HomeMainActivity : AppCompatActivity() {
                 }
             }
         }
-        private fun receiveImage(strPrefix: String) {
+        private fun receiveImage() {
             val buffer = ByteArray(1024)
             var bytes: Int
             Log.i(TAG, "BEGIN image receive")
-            bytes = mmInStream!!.read(buffer)
+            bytes = mmInStream.read(buffer)
             val strReceived = String(buffer,0, bytes)
             var imagesizestr = strReceived.substring(0, 16)
             val imagesize = imagesizestr.substring(2, 14).toInt()
@@ -421,7 +414,7 @@ class HomeMainActivity : AppCompatActivity() {
             var bytesReceived = bytes - 16
             remoteImageOutputStream.write(buffer, 16, bytesReceived)
             while (bytesReceived < imagesize) {
-                bytes = mmInStream!!.read(buffer)
+                bytes = mmInStream.read(buffer)
                 if (bytes > 0) {
                     bytesReceived += bytes
                     remoteImageOutputStream.write(buffer, 0, bytes)
@@ -451,7 +444,7 @@ class HomeMainActivity : AppCompatActivity() {
                 applicationContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
-            !== PackageManager.PERMISSION_GRANTED
+            != PackageManager.PERMISSION_GRANTED
         ) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(
                     this,
@@ -481,7 +474,7 @@ class HomeMainActivity : AppCompatActivity() {
                     if ((ContextCompat.checkSelfPermission(
                             this,
                             Manifest.permission.ACCESS_FINE_LOCATION
-                        ) ===
+                        ) ==
                                 PackageManager.PERMISSION_GRANTED)
                     ) {
                         Toast.makeText(

@@ -8,9 +8,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
+@Suppress("UNCHECKED_CAST")
 class SettingViewModelFactory(val application: Application):
     ViewModelProvider.AndroidViewModelFactory(application) {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return SettingViewModel(
             application
         ) as T
@@ -25,7 +26,7 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
 
     private val _mysex = MutableLiveData<SEX>().apply {
         val mySexFlow: Flow<SEX>? =
-            context.mySexDataStore?.data?.map { settings ->
+            context.mySexDataStore.data.map { settings ->
                 settings.sex
             }
         value = runBlocking {
