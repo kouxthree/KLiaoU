@@ -147,13 +147,6 @@ class HomeMainActivity : AppCompatActivity() {
         val startForResultTurnOnBtDiscoverable =
             registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
                 when (result?.resultCode) {
-                    RESULT_OK -> {
-                        Toast.makeText(
-                            applicationContext,
-                            "Bluetooth Discoverable.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
                     RESULT_CANCELED -> {
                         Toast.makeText(
                             applicationContext,
@@ -161,48 +154,52 @@ class HomeMainActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         ).show()
                     }
+//                    RESULT_OK -> {
+                    else -> {
+                        Toast.makeText(
+                            applicationContext,
+                            "Bluetooth Discoverable.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        isBroadcasting = true
+                        setBtnBroadcastBkColor()
+                        //run broadcast thread
+                        stopBroadcasting()
+                        broadcastThread = BroadcastThread(HomeBindActivity.MALE_UUID)
+                        broadcastThread?.start()
+                        countDownBroadcasting(BROADCAST_TIMEOUT.toInt())
+                    }
                 }
             }
-        //make bluetooth non-discoverable
+//        //make bluetooth non-discoverable
 //        val intentTurnOffBtDiscoverable = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
 //        intentTurnOffBtDiscoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1);
 //        val startForResultTurnOffBtDiscoverable =
-//            registerForActivityResult(StartActivityForResult()) {
-//                Toast.makeText(
-//                    applicationContext,
-//                    "Bluetooth NOT Discoverable",
-//                    Toast.LENGTH_LONG
-//                ).show()
-//                _binding.textServerInfo3.text = "not discoverable"
+//            registerForActivityResult(StartActivityForResult()) {result: ActivityResult? ->
+//                when (result?.resultCode) {
+//                    RESULT_OK -> {
+//                        Toast.makeText(
+//                            applicationContext,
+//                            "Bluetooth NOT Discoverable",
+//                            Toast.LENGTH_LONG
+//                        ).show()
+//                        _binding.textServerInfo3.text = "not discoverable"
+//                    }
+//                }
 //            }
         //btn_broadcast
-//        val isb: LiveData<Boolean> =  MutableLiveData<Boolean>().apply {
-//            value = (bluetoothAdapter?.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
-//        }
-//        isb.observe(this, {
-//            isBroadcasting = it
-//            setBtnBroadcastBkColor()
-//        })
         setBtnBroadcastBkColor()
         _binding.btnBroadcast.setOnClickListener {
             if (!isBroadcasting) {
-                isBroadcasting = true
                 //turn on bluetooth discoverable
-                if(bluetoothAdapter?.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-                    startForResultTurnOnBtDiscoverable.launch(intentTurnOnBtDiscoverable)
-                }
-                //run broadcast thread
-                stopBroadcasting()
-                broadcastThread = BroadcastThread(HomeBindActivity.MALE_UUID)
-                broadcastThread?.start()
-                countDownBroadcasting(BROADCAST_TIMEOUT.toInt())
+                startForResultTurnOnBtDiscoverable.launch(intentTurnOnBtDiscoverable)
             } else {
                 isBroadcasting = false
 //                startForResultTurnOffBtDiscoverable.launch(intentTurnOffBtDiscoverable)
                 stopBroadcasting()
                 countDownBroadcasting(0)
+                setBtnBroadcastBkColor()
             }
-            setBtnBroadcastBkColor()
         }
     }
     //scan
@@ -266,7 +263,7 @@ class HomeMainActivity : AppCompatActivity() {
     }
     //broadcast
     private var countdownJob: Job? = null
-    private val BROADCAST_TIMEOUT: Long = 100//TimeUnit.MILLISECONDS.convert(100, TimeUnit.SECONDS)//MAX=300s
+    private val BROADCAST_TIMEOUT: Long = 120//TimeUnit.MILLISECONDS.convert(120, TimeUnit.SECONDS)//MAX=300s
     private fun setBtnBroadcastBkColor() {
         try {
             //biding is null when fragment not active
@@ -298,6 +295,7 @@ class HomeMainActivity : AppCompatActivity() {
                     tops--
                     delay(1000)
                     txt3?.text = tops.toString()
+                    if(blState != HomeBindActivity.BL_STATE_LISTEN) break
                 }
                 stopBroadcasting()
                 isBroadcasting = false
@@ -430,7 +428,7 @@ class HomeMainActivity : AppCompatActivity() {
         fun cancel() {
             try {
                 mmServerSocket?.close()
-                blState == HomeBindActivity.BL_STATE_NONE
+                blState = HomeBindActivity.BL_STATE_NONE
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the connect socket", e)
             }

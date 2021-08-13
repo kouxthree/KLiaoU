@@ -49,6 +49,7 @@ class HomeBindActivity : AppCompatActivity() {
 
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        stopConnecting()
         if (item.getItemId() == R.id.home) {
             finish()
             return true
