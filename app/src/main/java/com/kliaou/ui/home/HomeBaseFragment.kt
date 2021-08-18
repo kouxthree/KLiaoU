@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kliaou.databinding.FragmentHomeBaseBinding
 import com.kliaou.scanresult.RecyclerAdapter
-import java.util.*
 
 class HomeBaseFragment : Fragment() {
     val homeViewModel: HomeViewModel by viewModels()
@@ -29,6 +28,11 @@ class HomeBaseFragment : Fragment() {
         binding.btnStart.setOnClickListener {
             val showHomeMainActivityIntent = Intent(context, HomeMainActivity::class.java)
             context?.startActivity(showHomeMainActivityIntent)
+        }
+
+        binding.btnStartBle.setOnClickListener {
+            val showHomeMainActivityBleIntent = Intent(context, BleHomeMainActivity::class.java)
+            context?.startActivity(showHomeMainActivityBleIntent)
         }
 
         return root

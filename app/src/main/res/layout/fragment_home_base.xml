@@ -23,6 +23,11 @@
             android:layout_width="match_parent"
             android:layout_height="86dp"
             android:text="start" />
+        <Button
+        android:id="@+id/btn_start_ble"
+        android:layout_width="match_parent"
+        android:layout_height="86dp"
+        android:text="start ble" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
