@@ -143,15 +143,23 @@ class BleHomeMainActivity : AppCompatActivity() {
             if (view.isChecked) startAdvertising() else stopAdvertising()
             Log.d(TAG, "onViewCreated: switch clicked ")
         }
+        showAdvertisementState()
+    }
+    private fun showAdvertisementState() {
+        if(BleAdvertiserService.running) {
+            _binding.textServerInfo3.text = getString(R.string.non_advertising)
+        } else {
+            _binding.textServerInfo3.text = getString(R.string.non_advertising)
+        }
     }
     private fun startAdvertising() {
         applicationContext.startService(createServiceIntent())
-        _binding.textServerInfo3.text = getString(R.string.non_advertising)
+        showAdvertisementState()
     }
     private fun stopAdvertising() {
         applicationContext.stopService(createServiceIntent())
         _binding.advertiseSwitch.isChecked = false
-        _binding.textServerInfo3.text = getString(R.string.non_advertising)
+        showAdvertisementState()
     }
     private fun createServiceIntent(): Intent =
         Intent(applicationContext, BleAdvertiserService::class.java)
