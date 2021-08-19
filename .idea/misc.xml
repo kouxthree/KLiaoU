@@ -7,8 +7,11 @@
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_bind.xml" value="0.19641025641025642" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_main.xml" value="0.19641025641025642" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_main_ble.xml" value="0.19947916666666668" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_scanresult_detail.xml" value="0.2082051282051282" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_home_main.xml" value="0.1925925925925926" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_scanresult_detail.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_scanresult_item.xml" value="0.19947916666666668" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/dialog_scanresult_detail.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/fragment_home_base.xml" value="0.11666666666666667" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/fragment_setting.xml" value="0.1537037037037037" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/scanresult_item.xml" value="0.12083333333333333" />

@@ -32,10 +32,14 @@
             android:name=".ui.home.HomeMainActivity"
             android:screenOrientation="portrait"></activity>
         <activity
+            android:name=".ui.home.HomeBindActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
             android:name=".ui.home.BleHomeMainActivity"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".ui.home.HomeBindActivity"
+            android:name=".ui.home.BleScanresultDetailActivity"
+            android:theme="@android:style/Theme.Holo.Dialog"
             android:screenOrientation="portrait"></activity>
         <!-- xguang -->
         <provider

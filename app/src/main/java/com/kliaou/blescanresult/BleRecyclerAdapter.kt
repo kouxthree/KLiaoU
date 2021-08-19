@@ -6,15 +6,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
-import com.kliaou.R
 import com.kliaou.databinding.BleScanresultItemBinding
-import com.kliaou.scanresult.RecyclerAdapter
-import com.kliaou.scanresult.RecyclerItem
-import com.kliaou.ui.home.HomeBindActivity
+import com.kliaou.ui.home.BleScanresultDetailActivity
 
 private const val TAG = "BleRecyclerAdapter"
 
@@ -75,14 +69,14 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
         }
         override fun onClick(v: View) {
             val context = v.context
-            val showBindActivityIntent = Intent(context, HomeBindActivity::class.java)
+            val showActivityIntent = Intent(context, BleScanresultDetailActivity::class.java)
             //scanned device mac address
-            showBindActivityIntent.putExtra(BleRecyclerAdapter.BIND_ITEM_ADDRESS, _scanResult?.device?.address)
-            context.startActivity(showBindActivityIntent)
+            showActivityIntent.putExtra(BLE_REMOTE_MAC, _scanResult?.device?.address)
+            context.startActivity(showActivityIntent)
         }
     }
 
     companion object {
-        const val BIND_ITEM_ADDRESS = "BIND_ITEM_ADDRESS"
+        const val BLE_REMOTE_MAC = "BLE_REMOTE_MAC"
     }
 }
