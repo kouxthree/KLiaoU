@@ -16,4 +16,4 @@ const val LOCATION_FINE_PERM = Manifest.permission.ACCESS_FINE_LOCATION
 const val ADVERTISE_TIMEOUT: Long = 10//minutes
 const val SCAN_PERIOD_IN_MILLIS: Long = 90_000
 const val MY_IMG_FILE_NAME = "myimg"
-val ADVERTISE_UUID = ParcelUuid.fromString("00000000-a000-0000-0000-000000000000")
+val ADVERTISE_UUID = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fb")
