@@ -153,11 +153,11 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     }
     private fun startAdvertising() {
-        applicationContext.startService(createServiceIntent())
+        startService(createServiceIntent())
         showAdvertisementState()
     }
     private fun stopAdvertising() {
-        applicationContext.stopService(createServiceIntent())
+        stopService(createServiceIntent())
         _binding.advertiseSwitch.isChecked = false
         showAdvertisementState()
     }
