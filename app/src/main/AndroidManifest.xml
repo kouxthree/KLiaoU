@@ -42,6 +42,10 @@
             android:name=".ui.home.BleScanresultDetailActivity"
             android:theme="@android:style/Theme.Holo.Dialog"
             android:screenOrientation="portrait"></activity>
+        <service
+            android:name=".service.BleAdvertiserService"
+            android:enabled="true"
+            android:exported="false"></service>
         <!-- xguang -->
         <provider
             android:name="androidx.core.content.FileProvider"
