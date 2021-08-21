@@ -4,8 +4,6 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_setting">setting</string>
     <string name="bt_null">Bluetooth Null</string>
-    <string name="advertising">Advertising</string>
-    <string name="non_advertising">NOT Advertising</string>
     <string name="bl_non_available">Bluetooth not available</string>
     <string name="bl_available">Bluetooth available</string>
     <string name="bl_non_enable">Bluetooth not enable</string>

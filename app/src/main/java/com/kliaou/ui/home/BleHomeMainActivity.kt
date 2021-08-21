@@ -29,12 +29,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
 import com.kliaou.blescanresult.BleRecyclerAdapter
 import com.kliaou.databinding.BleActivityHomeMainBinding
-import com.kliaou.scanresult.RecyclerItem
 import com.kliaou.service.BleAdvertiserService
-import kotlinx.coroutines.*
 import java.io.*
-import java.util.*
-import kotlin.collections.ArrayList
 
 private const val TAG = "BleHomeMainActivity"
 
@@ -42,7 +38,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
     private lateinit var scanResultLinearLayoutManager: LinearLayoutManager
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.getItemId() == android.R.id.home) {
+        if (item.itemId == android.R.id.home) {
             finish()
             return true
         }
@@ -143,23 +139,13 @@ class BleHomeMainActivity : AppCompatActivity() {
             if (view.isChecked) startAdvertising() else stopAdvertising()
             Log.d(TAG, "onViewCreated: switch clicked ")
         }
-        showAdvertisementState()
-    }
-    private fun showAdvertisementState() {
-        if(BleAdvertiserService.running) {
-            _binding.textServerInfo3.text = getString(R.string.non_advertising)
-        } else {
-            _binding.textServerInfo3.text = getString(R.string.non_advertising)
-        }
     }
     private fun startAdvertising() {
         applicationContext.startService(createServiceIntent())
-        showAdvertisementState()
     }
     private fun stopAdvertising() {
         applicationContext.stopService(createServiceIntent())
         _binding.advertiseSwitch.isChecked = false
-        showAdvertisementState()
     }
     private fun createServiceIntent(): Intent =
         Intent(applicationContext, BleAdvertiserService::class.java)
@@ -185,7 +171,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         //btn_search
         setBtnSearchBkColor(false)
         _binding.btnSearch.setOnClickListener {
-            if (getScanningState() == false) {
+            if (!getScanningState()) {
                 bleRecyclerAdapter.clearItems()
                 requestLocationPermission()
                 startScanning()
@@ -221,11 +207,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         try {
             //biding is null when fragment not active
             val btn = findViewById<FloatingActionButton>(R.id.btn_search)
-            if(btn?.backgroundTintList == ColorStateList.valueOf(Color.RED)) {
-                isScanning = true
-            } else {
-                isScanning = false
-            }
+            isScanning = btn?.backgroundTintList == ColorStateList.valueOf(Color.RED)
         } catch (e: Exception) {
         }
         return isScanning
@@ -318,7 +300,7 @@ class BleHomeMainActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(
                         applicationContext,
-                        "Location Permission Is Necesary",
+                        "Location Permission Is Necessary",
                         Toast.LENGTH_LONG
                     ).show()
                 }

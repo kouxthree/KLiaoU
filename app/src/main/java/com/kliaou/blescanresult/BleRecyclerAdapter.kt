@@ -2,6 +2,7 @@ package com.kliaou.blescanresult
 
 import android.bluetooth.le.ScanResult
 import android.content.Intent
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -65,6 +66,7 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
                 binding.deviceAddress.text = it.device.address
                 binding.lastSeen.text = it.timestampNanos.toString()
             }
+            //this.itemView.setBackgroundColor(Color.parseColor("#ff4d4d"))
             _scanResult = item
         }
         override fun onClick(v: View) {

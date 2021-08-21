@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import com.kliaou.blescanresult.BleRecyclerAdapter
 import com.kliaou.databinding.BleActivityScanresultDetailBinding
-import com.kliaou.scanresult.RecyclerAdapter
 
 class BleScanresultDetailActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityScanresultDetailBinding
@@ -19,7 +19,7 @@ class BleScanresultDetailActivity : AppCompatActivity() {
         setContentView(_binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action
         //remote mac address
-        _mac = intent.getStringExtra(RecyclerAdapter.BIND_ITEM_ADDRESS).toString()
+        _mac = intent.getStringExtra(BleRecyclerAdapter.BLE_REMOTE_MAC).toString()
         _binding.txtMac.text = _mac.toString()
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
