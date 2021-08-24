@@ -37,10 +37,16 @@
         <activity
             android:name=".ui.home.BleHomeMainActivity"
             android:screenOrientation="portrait"></activity>
+        <!--
         <activity
-            android:name=".ui.home.BleScanresultDetailActivity"
+            android:name=".ui.home.BleResultDetailActivity"
             android:excludeFromRecents="true"
             android:theme="@style/AppTheme.Dialog3"
+            android:label="Detail"
+            android:screenOrientation="portrait"></activity>
+            -->
+        <activity
+            android:name=".ui.home.BleResultDetailActivity"
             android:screenOrientation="portrait"></activity>
         <service
             android:name=".service.BleAdvertiserService"

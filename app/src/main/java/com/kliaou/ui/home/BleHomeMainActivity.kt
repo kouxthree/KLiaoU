@@ -27,12 +27,10 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
-import com.kliaou.blescanresult.BleRecyclerAdapter
+import com.kliaou.bleresult.BleRecyclerAdapter
 import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.service.BleAdvertiserService
 import java.io.*
-
-private const val TAG = "BleHomeMainActivity"
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -365,7 +363,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     }
     private fun saveBitmapToFile(image: Bitmap) {
         try {
-            var myimg = getMyImgFile()
+            val myimg = getMyImgFile()
             if(!myimg.exists()) {
                 myimg.createNewFile()
             }
@@ -376,6 +374,10 @@ class BleHomeMainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Could not save file $MY_IMG_FILE_NAME")
         }
+    }
+
+    companion object {
+        private val TAG = BleHomeMainActivity::class.java.simpleName
     }
 }
 

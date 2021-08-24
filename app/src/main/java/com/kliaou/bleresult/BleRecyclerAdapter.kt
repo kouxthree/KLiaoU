@@ -1,17 +1,14 @@
-package com.kliaou.blescanresult
+package com.kliaou.bleresult
 
 import android.bluetooth.le.ScanResult
 import android.content.Intent
-import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.kliaou.databinding.BleScanresultItemBinding
-import com.kliaou.ui.home.BleScanresultDetailActivity
-
-private const val TAG = "BleRecyclerAdapter"
+import com.kliaou.databinding.BleResultItemBinding
+import com.kliaou.ui.home.BleResultDetailActivity
 
 class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>() {
 
@@ -42,7 +39,7 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
     private fun getItem(position: Int): ScanResult? = if (itemsList.isEmpty()) null else itemsList[position]
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultHolder {
-        val binding = BleScanresultItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = BleResultItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ResultHolder(binding)
     }
 
@@ -51,7 +48,7 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
         holder.bind(getItem(position))
     }
 
-    inner class ResultHolder(private val binding: BleScanresultItemBinding) :
+    inner class ResultHolder(private val binding: BleResultItemBinding) :
         RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
         private var _scanResult: ScanResult? = null
@@ -71,14 +68,15 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
         }
         override fun onClick(v: View) {
             val context = v.context
-            val showActivityIntent = Intent(context, BleScanresultDetailActivity::class.java)
-            //scanned device mac address
-            showActivityIntent.putExtra(BLE_REMOTE_MAC, _scanResult?.device?.address)
+            val showActivityIntent = Intent(context, BleResultDetailActivity::class.java)
+            //scanned device name and mac address
+            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_NAME, _scanResult?.device?.name)
+            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_ADDRESS, _scanResult?.device?.address)
             context.startActivity(showActivityIntent)
         }
     }
 
     companion object {
-        const val BLE_REMOTE_MAC = "BLE_REMOTE_MAC"
+        private val TAG = BleRecyclerAdapter::class.java.simpleName
     }
 }
