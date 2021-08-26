@@ -120,6 +120,7 @@ class BleResultDetailActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ble_activity_result_detail)
+
         val intent = intent
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
@@ -130,8 +131,8 @@ class BleResultDetailActivity : Activity() {
         mGattServicesList!!.setOnChildClickListener(servicesListClickListner)
         mConnectionState = findViewById<View>(R.id.connection_state) as TextView
         mDataField = findViewById<View>(R.id.data_value) as TextView
-        actionBar!!.title = mDeviceName
-        actionBar!!.setDisplayHomeAsUpEnabled(true)
+//        actionBar!!.title = mDeviceName
+//        actionBar!!.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BleGattService::class.java)
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
     }

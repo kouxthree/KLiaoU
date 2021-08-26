@@ -88,7 +88,9 @@ class BleAdvertiserService : Service() {
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
         .setTimeout(0).build()
     private fun buildAdvertiseData() = AdvertiseData.Builder()
-        .addServiceUuid(ADVERTISE_UUID).setIncludeDeviceName(true).build()
+        .addServiceUuid(ADVERTISE_UUID_MALE)
+        .addServiceUuid(ADVERTISE_UUID_FEMALE)
+        .setIncludeDeviceName(true).build()
     private fun bleAdvertiseCallback() = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {
             super.onStartFailure(errorCode)

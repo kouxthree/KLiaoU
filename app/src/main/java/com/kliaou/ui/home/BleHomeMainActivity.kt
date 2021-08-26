@@ -222,11 +222,18 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     }
     private fun buildScanFilters(): List<ScanFilter> {
-        val scanFilter = ScanFilter.Builder()
-            .setServiceUuid(ADVERTISE_UUID)
+        val scanFilterMale = ScanFilter.Builder()
+            .setServiceUuid(ADVERTISE_UUID_MALE)
+            .build()
+        val scanFilterFemale = ScanFilter.Builder()
+            .setServiceUuid(ADVERTISE_UUID_FEMALE)
             .build()
         Log.d(TAG, "buildScanFilters")
-        return listOf(scanFilter)
+        //return listOf(scanFilter)
+        val lst = ArrayList<ScanFilter>()
+        lst.add(scanFilterMale)
+        lst.add(scanFilterFemale)
+        return lst
     }
     inner class BleScanCallback : ScanCallback() {
         override fun onBatchScanResults(results: MutableList<ScanResult>?) {
