@@ -98,8 +98,8 @@ class BleAdvertiserService : Service() {
         return data.setIncludeDeviceName(true).build()
     }
     private fun buildAdvertiseData(data: AdvertiseData.Builder, serviceUuid: ParcelUuid) {
-        data.addServiceData(serviceUuid, "MyChar1".toByteArray(Charset.forName("UTF-8")))
-        data.addServiceData(serviceUuid, "MyChar2".toByteArray(Charset.forName("UTF-8")))
+        data.addServiceData(serviceUuid, "a".toByteArray(Charset.forName("UTF-8")))
+        data.addServiceData(serviceUuid, "b".toByteArray(Charset.forName("UTF-8")))
     }
     private fun bleAdvertiseCallback() = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {
