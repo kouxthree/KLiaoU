@@ -11,11 +11,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
-import com.kliaou.ui.home.BleHomeMainActivity
-import java.util.concurrent.TimeUnit
 import com.kliaou.*
+import com.kliaou.ui.home.BleHomeMainActivity
+import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 
-private const val TAG = "BleAdvertiserService"
 
 class BleAdvertiserService : Service() {
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
@@ -87,10 +87,20 @@ class BleAdvertiserService : Service() {
     private fun buildAdvertiseSettings() = AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
         .setTimeout(0).build()
-    private fun buildAdvertiseData() = AdvertiseData.Builder()
-        .addServiceUuid(ADVERTISE_UUID_MALE)
-        .addServiceUuid(ADVERTISE_UUID_FEMALE)
-        .setIncludeDeviceName(true).build()
+    private fun buildAdvertiseData(): AdvertiseData {
+        val data = AdvertiseData.Builder()
+        //male
+        data.addServiceUuid(ADVERTISE_UUID_MALE)
+        buildAdvertiseData(data, ADVERTISE_UUID_MALE)
+        //female
+        data.addServiceUuid(ADVERTISE_UUID_FEMALE)
+        buildAdvertiseData(data, ADVERTISE_UUID_FEMALE)
+        return data.setIncludeDeviceName(true).build()
+    }
+    private fun buildAdvertiseData(data: AdvertiseData.Builder, serviceUuid: ParcelUuid) {
+        data.addServiceData(serviceUuid, "MyChar1".toByteArray(Charset.forName("UTF-8")))
+        data.addServiceData(serviceUuid, "MyChar2".toByteArray(Charset.forName("UTF-8")))
+    }
     private fun bleAdvertiseCallback() = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {
             super.onStartFailure(errorCode)
@@ -124,6 +134,7 @@ class BleAdvertiserService : Service() {
     }
 
     companion object {
+        val TAG = BleAdvertiserService::class.java.simpleName
         var running: Boolean = false
     }
 }
