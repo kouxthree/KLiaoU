@@ -29,8 +29,18 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
 import com.kliaou.bleresult.BleRecyclerAdapter
 import com.kliaou.databinding.BleActivityHomeMainBinding
+import com.kliaou.datastore.proto.SEX
 import com.kliaou.service.BleAdvertiserService
+import com.kliaou.service.BleGattAttributes
+import com.kliaou.ui.setting.mySexDataStore
+import com.kliaou.ui.setting.remoteSexDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import java.io.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -100,6 +110,8 @@ class BleHomeMainActivity : AppCompatActivity() {
                 }
             startForResultTurnOnBt.launch(intentTurnOnBt)
         }
+        //init bluetooth manager
+        bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     }
 
     //advertisement
@@ -134,7 +146,13 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
         _binding.advertiseSwitch.setOnClickListener {
             val view = it as SwitchCompat
-            if (view.isChecked) startAdvertising() else stopAdvertising()
+            if (view.isChecked) {
+                startAdvertising()
+                startGattServer()
+            } else {
+                stopGattServer()
+                stopAdvertising()
+            }
             Log.d(TAG, "onViewCreated: switch clicked ")
         }
     }
@@ -147,6 +165,141 @@ class BleHomeMainActivity : AppCompatActivity() {
     }
     private fun createServiceIntent(): Intent =
         Intent(applicationContext, BleAdvertiserService::class.java)
+
+
+    //gatt server
+    private lateinit var bluetoothManager: BluetoothManager
+    private var bluetoothGattServer: BluetoothGattServer? = null
+    /* Collection of notification subscribers */
+    private val registeredDevices = mutableSetOf<BluetoothDevice>()
+    /**
+     * Initialize the GATT server instance with the services/characteristics
+     */
+    private fun startGattServer() {
+        bluetoothGattServer = bluetoothManager.openGattServer(this, gattServerCallback)
+        bluetoothGattServer?.addService(BleGattAttributes.createNameService())
+            ?: Log.w(TAG, "Unable to create GATT server")
+    }
+    /**
+     * Shut down the GATT server.
+     */
+    private fun stopGattServer() {
+        bluetoothGattServer?.close()
+    }
+    /**
+     * Send a service notification to any devices that are subscribed
+     * to the characteristic.
+     */
+    private fun notifyRegisteredDevices(timestamp: Long, adjustReason: Byte) {
+        if (registeredDevices.isEmpty()) {
+            Log.i(TAG, "No subscribers registered")
+            return
+        }
+        val name = BleGattAttributes.getNameByteArray()
+        Log.i(TAG, "Sending update to ${registeredDevices.size} subscribers")
+        for (device in registeredDevices) {
+            val nameCharacteristic = bluetoothGattServer
+                ?.getService(UUID.fromString(BleGattAttributes.NAME_SERVICE))
+                ?.getCharacteristic(UUID.fromString((BleGattAttributes.NAME_STRING)))
+            nameCharacteristic?.value = name
+            bluetoothGattServer?.notifyCharacteristicChanged(device, nameCharacteristic, false)
+        }
+    }
+    /**
+     * Callback to handle incoming requests to the GATT server.
+     * All read/write requests for characteristics and descriptors are handled here.
+     */
+    private val gattServerCallback = object : BluetoothGattServerCallback() {
+        override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.i(TAG, "BluetoothDevice CONNECTED: $device")
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "BluetoothDevice DISCONNECTED: $device")
+                //Remove device from any active subscriptions
+                registeredDevices.remove(device)
+            }
+        }
+        override fun onCharacteristicReadRequest(
+            device: BluetoothDevice, requestId: Int, offset: Int,
+            characteristic: BluetoothGattCharacteristic) {
+            when (characteristic.uuid) {
+                UUID.fromString(BleGattAttributes.NAME_STRING) -> {
+                    Log.i(TAG, "Read Name")
+                    bluetoothGattServer?.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        BleGattAttributes.getNameByteArray()
+                    )
+                }
+                else -> {
+                    // Invalid characteristic
+                    Log.w(TAG, "Invalid Characteristic Read: " + characteristic.uuid)
+                    bluetoothGattServer?.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_FAILURE,
+                        0,
+                        null
+                    )
+                }
+            }
+        }
+        override fun onDescriptorReadRequest(
+            device: BluetoothDevice, requestId: Int, offset: Int,
+            descriptor: BluetoothGattDescriptor) {
+            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG) == descriptor.uuid) {
+                Log.d(TAG, "Config descriptor read")
+                val returnValue = if (registeredDevices.contains(device)) {
+                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                } else {
+                    BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+                }
+                bluetoothGattServer?.sendResponse(device,
+                    requestId,
+                    BluetoothGatt.GATT_SUCCESS,
+                    0,
+                    returnValue)
+            } else {
+                Log.w(TAG, "Unknown descriptor read request")
+                bluetoothGattServer?.sendResponse(device,
+                    requestId,
+                    BluetoothGatt.GATT_FAILURE,
+                    0, null)
+            }
+        }
+        override fun onDescriptorWriteRequest(
+            device: BluetoothDevice, requestId: Int,
+            descriptor: BluetoothGattDescriptor,
+            preparedWrite: Boolean, responseNeeded: Boolean,
+            offset: Int, value: ByteArray) {
+            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG) == descriptor.uuid) {
+                if (Arrays.equals(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, value)) {
+                    Log.d(TAG, "Subscribe device to notifications: $device")
+                    registeredDevices.add(device)
+                } else if (Arrays.equals(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE, value)) {
+                    Log.d(TAG, "Unsubscribe device from notifications: $device")
+                    registeredDevices.remove(device)
+                }
+                if (responseNeeded) {
+                    bluetoothGattServer?.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0, null)
+                }
+            } else {
+                Log.w(TAG, "Unknown descriptor write request")
+                if (responseNeeded) {
+                    bluetoothGattServer?.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_FAILURE,
+                        0, null)
+                }
+            }
+        }
+    }
+
 
     //scan
     private lateinit var bleRecyclerAdapter: BleRecyclerAdapter
@@ -222,17 +375,43 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     }
     private fun buildScanFilters(): List<ScanFilter> {
-        val scanFilterMale = ScanFilter.Builder()
-            .setServiceUuid(ADVERTISE_UUID_MALE)
-            .build()
-        val scanFilterFemale = ScanFilter.Builder()
-            .setServiceUuid(ADVERTISE_UUID_FEMALE)
-            .build()
-        Log.d(TAG, "buildScanFilters")
+        //read remote gender from datastore
+        val remoteSexFlow: Flow<SEX>? =
+            applicationContext.remoteSexDataStore?.data?.map { settings ->
+                settings.sex
+            }
+        val remoteSex = runBlocking {
+            remoteSexFlow?.first()
+        }
+        val servideData = when(remoteSex) {
+            SEX.MALE -> byteArrayOf(ADVERTISE_DATA_MALE)
+            SEX.FEMALE -> byteArrayOf(ADVERTISE_DATA_FEMALE)
+            else -> byteArrayOf(ADVERTISE_DATA_MALE, ADVERTISE_DATA_FEMALE)
+        }
+        //male filter
+        val filter1 = ScanFilter.Builder()
+        filter1.setServiceUuid(ADVERTISE_UUID)
+            .setServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE))
+        //female filter
+        val filter2 = ScanFilter.Builder()
+        filter2.setServiceUuid(ADVERTISE_UUID)
+            .setServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_FEMALE))
+        //either filter
+        val filter3 = ScanFilter.Builder()
+        filter3.setServiceUuid(ADVERTISE_UUID)
+            .setServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE, ADVERTISE_DATA_FEMALE))
         //return listOf(scanFilter)
         val lst = ArrayList<ScanFilter>()
-        lst.add(scanFilterMale)
-        lst.add(scanFilterFemale)
+        lst.add(filter3.build())//always scan either
+        when(remoteSex) {
+            SEX.MALE -> lst.add(filter1.build())
+            SEX.FEMALE -> lst.add(filter2.build())
+            else -> {
+                lst.add(filter1.build())
+                lst.add(filter2.build())
+            }
+        }
+        Log.d(TAG, "buildScanFilters")
         return lst
     }
     inner class BleScanCallback : ScanCallback() {

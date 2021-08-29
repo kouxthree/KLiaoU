@@ -11,11 +11,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
+import androidx.lifecycle.ViewModelProvider
 import com.kliaou.*
+import com.kliaou.datastore.proto.SEX
 import com.kliaou.ui.home.BleHomeMainActivity
+import com.kliaou.ui.setting.SettingViewModel
+import com.kliaou.ui.setting.SettingViewModelFactory
+import com.kliaou.ui.setting.mySexDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
-
 
 class BleAdvertiserService : Service() {
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
@@ -88,18 +96,24 @@ class BleAdvertiserService : Service() {
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
         .setTimeout(0).build()
     private fun buildAdvertiseData(): AdvertiseData {
+        //read my gender from datastore
+        val mySexFlow: Flow<SEX>? =
+            applicationContext.mySexDataStore.data.map { settings ->
+                settings.sex
+            }
+        val mySex = runBlocking {
+            mySexFlow?.first()
+        }
         val data = AdvertiseData.Builder()
-        //male
-        data.addServiceUuid(ADVERTISE_UUID_MALE)
-        buildAdvertiseData(data, ADVERTISE_UUID_MALE)
-        //female
-        data.addServiceUuid(ADVERTISE_UUID_FEMALE)
-        buildAdvertiseData(data, ADVERTISE_UUID_FEMALE)
+        data.addServiceUuid(ADVERTISE_UUID)
+        when(mySex) {
+            SEX.MALE -> data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE))
+            SEX.FEMALE -> data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_FEMALE))
+            else -> {
+                data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE, ADVERTISE_DATA_FEMALE))
+            }
+        }
         return data.setIncludeDeviceName(true).build()
-    }
-    private fun buildAdvertiseData(data: AdvertiseData.Builder, serviceUuid: ParcelUuid) {
-        data.addServiceData(serviceUuid, "a".toByteArray(Charset.forName("UTF-8")))
-        data.addServiceData(serviceUuid, "b".toByteArray(Charset.forName("UTF-8")))
     }
     private fun bleAdvertiseCallback() = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {

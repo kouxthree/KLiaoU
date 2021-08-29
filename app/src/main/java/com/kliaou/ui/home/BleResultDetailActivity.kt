@@ -1,6 +1,5 @@
 package com.kliaou.ui.home
 
-import android.app.Activity
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.content.*
@@ -14,12 +13,13 @@ import android.widget.ExpandableListView
 import android.widget.ExpandableListView.OnChildClickListener
 import android.widget.SimpleExpandableListAdapter
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
 import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattService
 import java.util.*
 
-class BleResultDetailActivity : Activity() {
+class BleResultDetailActivity : AppCompatActivity() {
     private var mConnectionState: TextView? = null
     private var mDataField: TextView? = null
     private var mDeviceName: String? = null
@@ -131,8 +131,8 @@ class BleResultDetailActivity : Activity() {
         mGattServicesList!!.setOnChildClickListener(servicesListClickListner)
         mConnectionState = findViewById<View>(R.id.connection_state) as TextView
         mDataField = findViewById<View>(R.id.data_value) as TextView
-//        actionBar!!.title = mDeviceName
-//        actionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = mDeviceName
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BleGattService::class.java)
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
     }
@@ -212,6 +212,7 @@ class BleResultDetailActivity : Activity() {
             val currentServiceData = HashMap<String, String?>()
             uuid = gattService.uuid.toString()
             currentServiceData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownServiceString)
+            if(currentServiceData[LIST_NAME] == unknownServiceString) continue
             currentServiceData[LIST_UUID] = uuid
             gattServiceData.add(currentServiceData)
             val gattCharacteristicGroupData = ArrayList<HashMap<String, String?>>()
@@ -224,6 +225,7 @@ class BleResultDetailActivity : Activity() {
                 val currentCharaData = HashMap<String, String?>()
                 uuid = gattCharacteristic.uuid.toString()
                 currentCharaData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownCharaString)
+                if(currentCharaData[LIST_NAME] == unknownCharaString) continue
                 currentCharaData[LIST_UUID] = uuid
                 gattCharacteristicGroupData.add(currentCharaData)
             }

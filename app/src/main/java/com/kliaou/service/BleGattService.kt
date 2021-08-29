@@ -35,7 +35,7 @@ class BleGattService: Service() {
         const val ACTION_GATT_SERVICES_DISCOVERED = "com.kliaou.ACTION_GATT_SERVICES_DISCOVERED"
         const val ACTION_DATA_AVAILABLE = "com.kliaou.ACTION_DATA_AVAILABLE"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
-        val UUID_HEART_RATE_MEASUREMENT: UUID = UUID.fromString(BleGattAttributes.HEART_RATE_MEASUREMENT)
+        val UUID_NAME_SERVICE: UUID = UUID.fromString(BleGattAttributes.NAME_STRING)
     }
 
     // Implements callback methods for GATT events that the app cares about.
@@ -84,22 +84,22 @@ class BleGattService: Service() {
     }
     private fun broadcastUpdate(action: String, characteristic: BluetoothGattCharacteristic) {
         val intent = Intent(action)
-        // Data parsing is carried out as per profile specifications:
-        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
-        if (UUID_HEART_RATE_MEASUREMENT == characteristic.uuid) {
-            val flag = characteristic.properties
-            val format: Int
-            if ((flag and 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_UINT16
-                Log.d(TAG, "Heart rate format UINT16.")
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_UINT8
-                Log.d(TAG, "Heart rate format UINT8.")
-            }
-            val heartRate = characteristic.getIntValue(format, 1)
-            Log.d(TAG, String.format("Received heart rate: %d", heartRate))
-            intent.putExtra(EXTRA_DATA, heartRate.toString())
-        } else {
+//        // Data parsing is carried out as per profile specifications:
+//        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
+//        if (UUID_NAME_SERVICE == characteristic.uuid) {
+//            val flag = characteristic.properties
+//            val format: Int
+//            if ((flag and 0x01) != 0) {
+//                format = BluetoothGattCharacteristic.FORMAT_UINT16
+//                Log.d(TAG, "Name Service format UINT16.")
+//            } else {
+//                format = BluetoothGattCharacteristic.FORMAT_UINT8
+//                Log.d(TAG, "Name Service format UINT8.")
+//            }
+//            val nameString = characteristic.getIntValue(format, 1)
+//            Log.d(TAG, String.format("Received name: %d", nameString))
+//            intent.putExtra(EXTRA_DATA, nameString.toString())
+//        } else {
             // For all other profiles, writes the data formatted in HEX.
             val data = characteristic.value
             if (data != null && data.isNotEmpty()) {
@@ -109,7 +109,7 @@ class BleGattService: Service() {
                 }
                 intent.putExtra(EXTRA_DATA,  String(data) + "\n" + stringBuilder.toString())
             }
-        }
+//        }
         sendBroadcast(intent)
     }
 
@@ -162,17 +162,17 @@ class BleGattService: Service() {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.")
             return false
         }
-        // Previously connected device.  Try to reconnect.
-        if (mBluetoothDeviceAddress != null && address == mBluetoothDeviceAddress
-            && mBluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
-            return if (mBluetoothGatt!!.connect()) {
-                mConnectionState = STATE_CONNECTING
-                true
-            } else {
-                false
-            }
-        }
+//        // Previously connected device.  Try to reconnect.
+//        if (mBluetoothDeviceAddress != null && address == mBluetoothDeviceAddress
+//            && mBluetoothGatt != null) {
+//            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
+//            return if (mBluetoothGatt!!.connect()) {
+//                mConnectionState = STATE_CONNECTING
+//                true
+//            } else {
+//                false
+//            }
+//        }
         val device: BluetoothDevice? = mBluetoothAdapter!!.getRemoteDevice(address)
         if (device == null) {
             Log.w(TAG, "Device not found.  Unable to connect.")
@@ -239,13 +239,13 @@ class BleGattService: Service() {
         }
         mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
 
-        // This is specific to Heart Rate Measurement.
-        if (UUID_HEART_RATE_MEASUREMENT == characteristic.uuid) {
-            val descriptor: BluetoothGattDescriptor = characteristic
-                .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG))
-            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-            mBluetoothGatt!!.writeDescriptor(descriptor)
-        }
+//        // This is specific to Name String.
+//        if (UUID_NAME_SERVICE == characteristic.uuid) {
+//            val descriptor: BluetoothGattDescriptor = characteristic
+//                .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG))
+//            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+//            mBluetoothGatt!!.writeDescriptor(descriptor)
+//        }
     }
     /**
      * Retrieves a list of supported GATT services on the connected device. This should be

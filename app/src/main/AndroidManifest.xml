@@ -52,6 +52,10 @@
             android:name=".service.BleAdvertiserService"
             android:enabled="true"
             android:exported="false"></service>
+        <service
+            android:name=".service.BleGattService"
+            android:enabled="true"
+            android:exported="false"></service>
         <!-- xguang -->
         <provider
             android:name="androidx.core.content.FileProvider"
