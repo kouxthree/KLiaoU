@@ -9,21 +9,18 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.*
-import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
@@ -32,13 +29,11 @@ import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.datastore.proto.SEX
 import com.kliaou.service.BleAdvertiserService
 import com.kliaou.service.BleGattAttributes
-import com.kliaou.ui.setting.mySexDataStore
 import com.kliaou.ui.setting.remoteSexDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import java.io.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -46,13 +41,18 @@ class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
     private lateinit var scanResultLinearLayoutManager: LinearLayoutManager
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
+        when (item.itemId) {
+            R.id.ble_main_menu_setttings -> {
+                val intent = Intent(applicationContext, BleMainSettingActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                applicationContext.startActivity(intent)
+                return true
+            }
         }
         return super.onOptionsItemSelected(item)
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.ble_main_menu, menu)
         return true
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +61,8 @@ class BleHomeMainActivity : AppCompatActivity() {
         _binding = BleActivityHomeMainBinding.inflate(layoutInflater)
         //setContentView(R.layout.activity_bind)
         setContentView(_binding.root)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)//dark mode
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)//not display return home arrow
         //bluetooth
         enableBluetooth()
         //location permission
@@ -70,24 +71,16 @@ class BleHomeMainActivity : AppCompatActivity() {
         createAdvertisement()
         //scanner
         createScanner()
-        //my image
-        createMyImg()
     }
 
     //bluetooth
     private fun enableBluetooth() {
         val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-        //check if bluetooth is available or not
-        if (bluetoothAdapter == null) {
-            _binding.textServerInfo1.text = getString(R.string.bl_non_available)
-        } else {
-            _binding.textServerInfo1.text = getString(R.string.bl_available)
-        }
         //turn on bluetooth
         if (bluetoothAdapter?.isEnabled == true) {
-            _binding.textServerInfo2.text = getString(R.string.bl_enabled)
+            _binding.textServerInfo1.text = ""
         } else {
-            _binding.textServerInfo2.text = getString(R.string.bl_non_available)
+            _binding.textServerInfo1.text = getString(R.string.bl_not_available)
             Toast.makeText(applicationContext, "Turning On Bluetooth...", Toast.LENGTH_LONG).show()
             //intent to on bluetooth
             val intentTurnOnBt = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -97,7 +90,6 @@ class BleHomeMainActivity : AppCompatActivity() {
                         RESULT_OK -> {
                             Toast.makeText(applicationContext, "Bluetooth Turned On.", Toast.LENGTH_SHORT)
                                 .show()
-                            _binding.textServerInfo2.text = getString(R.string.bl_enabled)
                         }
                         RESULT_CANCELED -> {
                             Toast.makeText(
@@ -376,17 +368,12 @@ class BleHomeMainActivity : AppCompatActivity() {
     }
     private fun buildScanFilters(): List<ScanFilter> {
         //read remote gender from datastore
-        val remoteSexFlow: Flow<SEX>? =
-            applicationContext.remoteSexDataStore?.data?.map { settings ->
+        val remoteSexFlow: Flow<SEX> =
+            applicationContext.remoteSexDataStore.data.map { settings ->
                 settings.sex
             }
         val remoteSex = runBlocking {
-            remoteSexFlow?.first()
-        }
-        val servideData = when(remoteSex) {
-            SEX.MALE -> byteArrayOf(ADVERTISE_DATA_MALE)
-            SEX.FEMALE -> byteArrayOf(ADVERTISE_DATA_FEMALE)
-            else -> byteArrayOf(ADVERTISE_DATA_MALE, ADVERTISE_DATA_FEMALE)
+            remoteSexFlow.first()
         }
         //male filter
         val filter1 = ScanFilter.Builder()
@@ -438,6 +425,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     //location
     private val LocationPermission = 1
     private fun requestLocationPermission() {
+        _binding.textServerInfo2.text = ""
         if (ActivityCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -464,6 +452,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
                                             grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        _binding.textServerInfo2.text = getString(R.string.loc_not_available)
         when (requestCode) {
             LocationPermission -> {
                 if (grantResults.isNotEmpty() && grantResults[0] ==
@@ -490,75 +479,6 @@ class BleHomeMainActivity : AppCompatActivity() {
                 }
                 return
             }
-        }
-    }
-
-    //my image
-    private fun createMyImg() {
-        //deleteMyImgFile()//delete exists
-        val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val myimgfiletemp: File = getMyImgFileTemp()
-        val providerFile =
-            FileProvider.getUriForFile(
-                applicationContext,
-                "com.kliaou.fileprovider",
-                myimgfiletemp
-            )
-        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, providerFile)
-        val startForResult =
-            registerForActivityResult(StartActivityForResult()) { result: ActivityResult? ->
-                when (result?.resultCode) {
-                    RESULT_OK -> {
-                        //val imageBitmap = result.data?.extras?.get("data") as Bitmap
-                        var imageBitmap = BitmapFactory.decodeFile(myimgfiletemp.absolutePath)
-                        //compress image
-                        imageBitmap = compressImage(imageBitmap)
-                        //show image
-                        _binding.myImg.setImageBitmap(imageBitmap)
-                        //save to file
-                        saveBitmapToFile(imageBitmap)
-                    }
-                    RESULT_CANCELED -> {
-                    }
-                }
-            }
-        _binding.myImg.setOnClickListener {
-            startForResult.launch(takePhotoIntent)
-        }
-    }
-    private fun getMyImgFileTemp(): File {
-        return File.createTempFile(MY_IMG_FILE_NAME, ".jpg", getExternalFilesDir(Environment.DIRECTORY_PICTURES))
-    }
-    private fun getMyImgFile():File {
-        return File(getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!.path + "/" + MY_IMG_FILE_NAME + ".jpg")
-     }
-    private fun compressImage(image: Bitmap): Bitmap? {
-        val baos = ByteArrayOutputStream()
-        var options = 100
-        //read data
-        image.compress(Bitmap.CompressFormat.JPEG, options, baos)
-        //compress to 300kb
-        while ((baos.toByteArray().size / 1024) > 300 ) {
-            baos.reset()
-            options -= 10
-            image.compress(Bitmap.CompressFormat.JPEG, options, baos)
-            if(options <= 10) break
-        }
-        val isBm = ByteArrayInputStream(baos.toByteArray())
-        return BitmapFactory.decodeStream(isBm,null,null)
-    }
-    private fun saveBitmapToFile(image: Bitmap) {
-        try {
-            val myimg = getMyImgFile()
-            if(!myimg.exists()) {
-                myimg.createNewFile()
-            }
-            val fOut = FileOutputStream(myimg)
-            image.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
-            fOut.flush()
-            fOut.close()
-        } catch (e: Exception) {
-            Log.e(TAG, "Could not save file $MY_IMG_FILE_NAME")
         }
     }
 

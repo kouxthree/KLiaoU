@@ -11,14 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.3"/>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_h_2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.6" />
+        app:layout_constraintGuide_percent="0.4"/>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_v_1"
@@ -94,7 +87,6 @@
         app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="@+id/guideline_v_1"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_1"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_h_2"
         app:layout_constraintVertical_bias="0.291">
 
         <TextView
@@ -111,11 +103,6 @@
             android:text="TextView"
             android:textSize="20sp" />
 
-        <ImageView
-            android:id="@+id/my_img"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_camera" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

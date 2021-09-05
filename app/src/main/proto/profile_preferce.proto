@@ -8,6 +8,14 @@ enum SEX {
   FEMALE = 1;
   OTHER = 2;
 }
+message MyChars {
+  string mynickname = 1;
+  SEX mysex = 2;
+  SEX remotesex = 3;
+}
+message MyNickname {
+  string value = 1;
+}
 message MySex {
   SEX sex = 2;
 }
