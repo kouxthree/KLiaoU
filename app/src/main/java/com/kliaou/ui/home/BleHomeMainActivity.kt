@@ -147,6 +147,7 @@ class BleHomeMainActivity : AppCompatActivity() {
             }
             Log.d(TAG, "onViewCreated: switch clicked ")
         }
+        if(!_binding.advertiseSwitch.isChecked) _binding.advertiseSwitch.isChecked = true
     }
     private fun startAdvertising() {
         applicationContext.startService(createServiceIntent())
