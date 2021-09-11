@@ -11,18 +11,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
-import androidx.lifecycle.ViewModelProvider
 import com.kliaou.*
 import com.kliaou.datastore.proto.SEX
 import com.kliaou.ui.home.BleHomeMainActivity
-import com.kliaou.ui.setting.SettingViewModel
-import com.kliaou.ui.setting.SettingViewModelFactory
-import com.kliaou.ui.setting.mySexDataStore
+import com.kliaou.ui.home.mySexDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 class BleAdvertiserService : Service() {

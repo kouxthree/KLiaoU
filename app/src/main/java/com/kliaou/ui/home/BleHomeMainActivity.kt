@@ -1,6 +1,7 @@
 package com.kliaou.ui.home
 
 import android.Manifest
+import android.R.attr
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.BroadcastReceiver
@@ -36,6 +37,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.collections.ArrayList
+import android.location.GpsStatus
+
+import android.location.LocationManager
+
+import android.R.attr.button
+
+import android.widget.TextView
+
+import android.os.Bundle
+import android.provider.Settings
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -67,6 +78,8 @@ class BleHomeMainActivity : AppCompatActivity() {
         enableBluetooth()
         //location permission
         requestLocationPermission()
+        //location state
+        turnOnLocationState()
         //advertisement
         createAdvertisement()
         //scanner
@@ -90,6 +103,7 @@ class BleHomeMainActivity : AppCompatActivity() {
                         RESULT_OK -> {
                             Toast.makeText(applicationContext, "Bluetooth Turned On.", Toast.LENGTH_SHORT)
                                 .show()
+                            _binding.textServerInfo1.text = ""
                         }
                         RESULT_CANCELED -> {
                             Toast.makeText(
@@ -147,7 +161,6 @@ class BleHomeMainActivity : AppCompatActivity() {
             }
             Log.d(TAG, "onViewCreated: switch clicked ")
         }
-        if(!_binding.advertiseSwitch.isChecked) _binding.advertiseSwitch.isChecked = true
     }
     private fun startAdvertising() {
         applicationContext.startService(createServiceIntent())
@@ -423,7 +436,7 @@ class BleHomeMainActivity : AppCompatActivity() {
             ).show()
         }
     }
-    //location
+    //location permission
     private val LocationPermission = 1
     private fun requestLocationPermission() {
         _binding.textServerInfo2.text = ""
@@ -480,6 +493,18 @@ class BleHomeMainActivity : AppCompatActivity() {
                 }
                 return
             }
+        }
+    }
+    //location state
+    private fun turnOnLocationState() {
+        //state check
+        val locationManager = applicationContext.getSystemService(LOCATION_SERVICE) as LocationManager
+        assert(locationManager != null)
+        val locationState = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        if (locationState !== true) {
+            _binding.textServerInfo2.text = getString(R.string.gps_not_available)
+            val intent1 = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            startActivity(intent1)
         }
     }
 
