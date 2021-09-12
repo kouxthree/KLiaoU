@@ -4,9 +4,9 @@ option java_package = "com.kliaou.datastore.proto";
 option java_multiple_files = true;
 
 enum SEX {
-  MALE = 0;
-  FEMALE = 1;
-  OTHER = 2;
+  OTHER = 0;
+  MALE = 1;
+  FEMALE = 2;
 }
 message MyChars {
   string mynickname = 1;
@@ -17,8 +17,8 @@ message MyNickname {
   string value = 1;
 }
 message MySex {
-  SEX sex = 2;
+  SEX sex = 1;
 }
 message RemoteSex {
-  SEX sex = 2;
+  SEX sex = 1;
 }

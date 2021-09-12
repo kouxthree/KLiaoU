@@ -42,11 +42,15 @@ import android.location.GpsStatus
 import android.location.LocationManager
 
 import android.R.attr.button
+import android.app.AlertDialog
 
 import android.widget.TextView
 
 import android.os.Bundle
 import android.provider.Settings
+import android.content.DialogInterface
+
+import android.widget.EditText
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -314,12 +318,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     //private var handler: Handler? = null
     private fun createScanner() {
         //handler = Handler(Looper.myLooper()!!)
-        if (bluetoothLeScanner == null) {
-            val manager =
-                applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            val bluetoothAdapter = manager.adapter
-            bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
-        }
+        if (bluetoothLeScanner == null) initBluetoothLeScanner()
         //scan result list
         scanResultLinearLayoutManager = LinearLayoutManager(this)
         _binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
@@ -339,6 +338,12 @@ class BleHomeMainActivity : AppCompatActivity() {
             }
         }
     }
+    private fun initBluetoothLeScanner() {
+        val manager =
+            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothAdapter = manager.adapter
+        bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
+    }
     private fun buildScanSettings() = ScanSettings.Builder()
         .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build()
     private fun startScanning() {
@@ -350,6 +355,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
         //handler?.postDelayed({ stopScanning() }, SCAN_PERIOD_IN_MILLIS)
         scanCallback = BleScanCallback()
+        if(bluetoothLeScanner == null) initBluetoothLeScanner()
         bluetoothLeScanner?.startScan(buildScanFilters(), buildScanSettings(), scanCallback)
     }
     private fun stopScanning() {
@@ -483,6 +489,7 @@ class BleHomeMainActivity : AppCompatActivity() {
                             "Location Permission Granted",
                             Toast.LENGTH_SHORT
                         ).show()
+                        _binding.textServerInfo2.text = ""
                     }
                 } else {
                     Toast.makeText(
@@ -501,10 +508,24 @@ class BleHomeMainActivity : AppCompatActivity() {
         val locationManager = applicationContext.getSystemService(LOCATION_SERVICE) as LocationManager
         assert(locationManager != null)
         val locationState = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        if (locationState !== true) {
-            _binding.textServerInfo2.text = getString(R.string.gps_not_available)
-            val intent1 = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-            startActivity(intent1)
+        if (!locationState) {
+            val adb = AlertDialog.Builder(this)
+            adb.setTitle(getString(R.string.gps_not_available))
+            adb.setIcon(android.R.drawable.ic_dialog_alert)
+            adb.setMessage(getString(R.string.goto_gps_setting_msg))
+            adb.setCancelable(true)
+            adb.setPositiveButton("OK") { _, _ ->
+                val intent1 = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent1)
+            }
+            adb.setNegativeButton("Cancel") { _, _ ->
+                Toast.makeText(
+                    applicationContext,
+                    "Location state NOT turned on",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            adb.show()
         }
     }
 

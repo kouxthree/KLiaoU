@@ -35,7 +35,7 @@ class BleGattService: Service() {
         const val ACTION_GATT_SERVICES_DISCOVERED = "com.kliaou.ACTION_GATT_SERVICES_DISCOVERED"
         const val ACTION_DATA_AVAILABLE = "com.kliaou.ACTION_DATA_AVAILABLE"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
-        val UUID_NAME_SERVICE: UUID = UUID.fromString(BleGattAttributes.NAME_STRING)
+        val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.NAME_STRING)
     }
 
     // Implements callback methods for GATT events that the app cares about.
@@ -86,7 +86,7 @@ class BleGattService: Service() {
         val intent = Intent(action)
 //        // Data parsing is carried out as per profile specifications:
 //        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
-//        if (UUID_NAME_SERVICE == characteristic.uuid) {
+//        if (UUID_NAME_CHAR == characteristic.uuid) {
 //            val flag = characteristic.properties
 //            val format: Int
 //            if ((flag and 0x01) != 0) {
@@ -238,14 +238,13 @@ class BleGattService: Service() {
             return
         }
         mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
-
-//        // This is specific to Name String.
-//        if (UUID_NAME_SERVICE == characteristic.uuid) {
-//            val descriptor: BluetoothGattDescriptor = characteristic
-//                .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG))
-//            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-//            mBluetoothGatt!!.writeDescriptor(descriptor)
-//        }
+        // when client config evoked
+        if (UUID_NAME_CHAR == characteristic.uuid && characteristic.descriptors.size > 0) {
+            val descriptor: BluetoothGattDescriptor = characteristic
+                .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG))
+            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            mBluetoothGatt!!.writeDescriptor(descriptor)
+        }
     }
     /**
      * Retrieves a list of supported GATT services on the connected device. This should be

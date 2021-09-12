@@ -63,12 +63,12 @@ class BleMainSettingViewModel(application: Application) : AndroidViewModel(appli
     val mysex: LiveData<SEX> = _mysex
 
     private val _remotesex = MutableLiveData<SEX>().apply {
-        val remoteSexFlow: Flow<SEX>? =
-            context?.remoteSexDataStore?.data?.map { settings ->
+        val remoteSexFlow: Flow<SEX> =
+            context.remoteSexDataStore.data.map { settings ->
                 settings.sex
             }
         value = runBlocking {
-            remoteSexFlow?.first()
+            remoteSexFlow.first()
         }
     }
     val remotesex: LiveData<SEX> = _remotesex

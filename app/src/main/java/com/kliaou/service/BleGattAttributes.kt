@@ -10,12 +10,12 @@ class BleGattAttributes {
     companion object {
         //service
         //val DEVICE_INFO_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"
-        val NAME_SERVICE = "00001800-0000-1000-8000-00805f9b34fb"
+        const val NAME_SERVICE = "00001800-0000-1000-8000-00805f9b34fb"
         //characteristics
-        val NAME_STRING = "00002a00-0000-1000-8000-00805f9b34fb"
+        const val NAME_STRING = "00002a00-0000-1000-8000-00805f9b34fb"
         //val MANUFACTURER_NAME_STRING = "00002a29-0000-1000-8000-00805f9b34fb"
         //val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
-        val CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb"
+        const val CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb"
 
         private val attributes: HashMap<String, String> = object : HashMap<String, String>()
         {
@@ -23,7 +23,7 @@ class BleGattAttributes {
                 //services
                 //put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service")
                 //put(DEVICE_INFO_SERVICE, "Device Information Service")
-                put(NAME_SERVICE, "Name Servce")
+                put(NAME_SERVICE, "Name Service")
                 //characteristics.
                 //put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
                 //put(MANUFACTURER_NAME_STRING, "Manufacturer Name String")
@@ -32,7 +32,7 @@ class BleGattAttributes {
         }
 
         fun lookup(uuid: String, defaultName: String): String {
-            var name = attributes.get(uuid)
+            val name = attributes[uuid]
             return name ?: defaultName
         }
 
@@ -69,9 +69,11 @@ class BleGattAttributes {
                 //Read-only characteristic, supports notifications
                 BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ)
-            val configDescriptor = BluetoothGattDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG),
+            val configDescriptor = BluetoothGattDescriptor(
+                UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG),
                 //Read/write descriptor
                 BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
+            //configDescriptor.value = "hello".toByteArray()
             nameCharacteristic.addDescriptor(configDescriptor)
 
             service.addCharacteristic(nameCharacteristic)

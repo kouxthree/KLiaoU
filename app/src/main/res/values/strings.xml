@@ -6,6 +6,7 @@
     <string name="bl_not_available">Bluetooth not available</string>
     <string name="loc_not_available">Location not available</string>
     <string name="gps_not_available">GPS not available</string>
+    <string name="goto_gps_setting_msg">Turn on GPS</string>
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
     <string name="no_data">No data</string>
@@ -30,7 +31,7 @@
     <string name="okay">Okay</string>
     <string name="loc_req_denied_msg">Cannot scan for Bluetooth because location permission was denied</string>
     <string name="bt_scanning">already scanning</string>
-    <string name="bt_notif_title">Advertising Device via Bluetooth</string>
-    <string name="bt_notif_txt">This device is discoverable to others nearby</string>
+    <string name="bt_notif_title">Advertising</string>
+    <string name="bt_notif_txt">Discoverable to others</string>
     <string name="refresh">Refresh</string>
 </resources>
