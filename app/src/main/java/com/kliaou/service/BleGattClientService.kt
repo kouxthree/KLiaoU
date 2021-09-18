@@ -18,7 +18,7 @@ import android.util.Log
 
 import java.util.UUID
 
-class BleGattService: Service() {
+class BleGattClientService: Service() {
     private var mBluetoothManager: BluetoothManager? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private var mBluetoothDeviceAddress: String? = null
@@ -26,7 +26,7 @@ class BleGattService: Service() {
     private var mConnectionState = STATE_DISCONNECTED
 
     companion object {
-        private val TAG = BleGattService::class.java.simpleName
+        private val TAG = BleGattClientService::class.java.simpleName
         private const val STATE_DISCONNECTED = 0
         private const val STATE_CONNECTING = 1
         private const val STATE_CONNECTED = 2
@@ -35,7 +35,7 @@ class BleGattService: Service() {
         const val ACTION_GATT_SERVICES_DISCOVERED = "com.kliaou.ACTION_GATT_SERVICES_DISCOVERED"
         const val ACTION_DATA_AVAILABLE = "com.kliaou.ACTION_DATA_AVAILABLE"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
-        val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.NAME_STRING)
+        val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.NAME_CHAR)
     }
 
     // Implements callback methods for GATT events that the app cares about.
@@ -114,8 +114,8 @@ class BleGattService: Service() {
     }
 
     inner class LocalBinder: Binder() {
-        fun getService(): BleGattService {
-            return this@BleGattService
+        fun getService(): BleGattClientService {
+            return this@BleGattClientService
         }
     }
     override fun onBind(intent: Intent): IBinder {

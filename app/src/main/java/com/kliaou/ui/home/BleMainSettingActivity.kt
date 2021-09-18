@@ -118,6 +118,8 @@ class BleMainSettingActivity : AppCompatActivity() {
                 .setValue(mynickname)
                 .build()
         }
+        //update broadcast nickname
+        BleHomeMainActivity.broadcastNickname = mynickname
     }
     private suspend fun storeMySex(sex: SEX) {
         applicationContext.mySexDataStore.updateData { currentSettings ->

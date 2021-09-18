@@ -1,7 +1,6 @@
 package com.kliaou.ui.home
 
 import android.Manifest
-import android.R.attr
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.BroadcastReceiver
@@ -11,7 +10,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.os.*
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -37,20 +35,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.collections.ArrayList
-import android.location.GpsStatus
-
 import android.location.LocationManager
-
-import android.R.attr.button
 import android.app.AlertDialog
-
-import android.widget.TextView
-
 import android.os.Bundle
 import android.provider.Settings
-import android.content.DialogInterface
-
-import android.widget.EditText
+import androidx.lifecycle.ViewModelProvider
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -188,7 +177,20 @@ class BleHomeMainActivity : AppCompatActivity() {
     private fun startGattServer() {
         bluetoothGattServer = bluetoothManager.openGattServer(this, gattServerCallback)
         bluetoothGattServer?.addService(BleGattAttributes.createNameService())
-            ?: Log.w(TAG, "Unable to create GATT server")
+            ?: Log.w(TAG, "Unable to create GATT name server")
+        bluetoothGattServer?.addService(BleGattAttributes.createInfoService())
+            ?: Log.w(TAG, "Unable to create GATT info server")
+        setBroadcastNickname()
+    }
+    //set nickname for broadcasting
+    private fun setBroadcastNickname() {
+        //read from datastore
+        val settingViewModel = ViewModelProvider(
+            this, SettingViewModelFactory(application)
+        )[BleMainSettingViewModel::class.java]
+        settingViewModel.mynickname.observe(this, {
+            if (it != null && it.isNotEmpty()) broadcastNickname = it
+        })
     }
     /**
      * Shut down the GATT server.
@@ -205,14 +207,14 @@ class BleHomeMainActivity : AppCompatActivity() {
             Log.i(TAG, "No subscribers registered")
             return
         }
-        val name = BleGattAttributes.getNameByteArray()
+        val nickname = BleGattAttributes.getNicknameByteArray()
         Log.i(TAG, "Sending update to ${registeredDevices.size} subscribers")
         for (device in registeredDevices) {
-            val nameCharacteristic = bluetoothGattServer
-                ?.getService(UUID.fromString(BleGattAttributes.NAME_SERVICE))
-                ?.getCharacteristic(UUID.fromString((BleGattAttributes.NAME_STRING)))
-            nameCharacteristic?.value = name
-            bluetoothGattServer?.notifyCharacteristicChanged(device, nameCharacteristic, false)
+            val nicknameCharacteristic = bluetoothGattServer
+                ?.getService(UUID.fromString(BleGattAttributes.INFO_SERVICE))
+                ?.getCharacteristic(UUID.fromString((BleGattAttributes.NICKNAME_CHAR)))
+            nicknameCharacteristic?.value = nickname
+            bluetoothGattServer?.notifyCharacteristicChanged(device, nicknameCharacteristic, false)
         }
     }
     /**
@@ -233,14 +235,24 @@ class BleHomeMainActivity : AppCompatActivity() {
             device: BluetoothDevice, requestId: Int, offset: Int,
             characteristic: BluetoothGattCharacteristic) {
             when (characteristic.uuid) {
-                UUID.fromString(BleGattAttributes.NAME_STRING) -> {
+                UUID.fromString(BleGattAttributes.NAME_CHAR) -> {
                     Log.i(TAG, "Read Name")
                     bluetoothGattServer?.sendResponse(
                         device,
                         requestId,
                         BluetoothGatt.GATT_SUCCESS,
                         0,
-                        BleGattAttributes.getNameByteArray()
+                        null
+                    )
+                }
+                UUID.fromString(BleGattAttributes.NICKNAME_CHAR) -> {
+                    Log.i(TAG, "Read Nickname")
+                    bluetoothGattServer?.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        BleGattAttributes.getNicknameByteArray()
                     )
                 }
                 else -> {
@@ -506,7 +518,6 @@ class BleHomeMainActivity : AppCompatActivity() {
     private fun turnOnLocationState() {
         //state check
         val locationManager = applicationContext.getSystemService(LOCATION_SERVICE) as LocationManager
-        assert(locationManager != null)
         val locationState = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         if (!locationState) {
             val adb = AlertDialog.Builder(this)
@@ -531,6 +542,7 @@ class BleHomeMainActivity : AppCompatActivity() {
 
     companion object {
         private val TAG = BleHomeMainActivity::class.java.simpleName
+        var broadcastNickname: String = ""
     }
 }
 

@@ -3,19 +3,22 @@ package com.kliaou.service
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
+import com.kliaou.ui.home.BleHomeMainActivity
 import java.util.*
 import kotlin.collections.HashMap
 
 class BleGattAttributes {
     companion object {
         //service
-        //val DEVICE_INFO_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"
         const val NAME_SERVICE = "00001800-0000-1000-8000-00805f9b34fb"
+        const val INFO_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"
         //characteristics
-        const val NAME_STRING = "00002a00-0000-1000-8000-00805f9b34fb"
+        const val NAME_CHAR = "00002a00-0000-1000-8000-00805f9b34fb"
+        const val NICKNAME_CHAR = "00002af7-0000-1000-8000-00805f9b34fb"
         //val MANUFACTURER_NAME_STRING = "00002a29-0000-1000-8000-00805f9b34fb"
         //val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
         const val CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb"
+        const val CLIENT_USER_DESCRIPTOR = "00002901-0000-1000-8000-00805f9b34fb"
 
         private val attributes: HashMap<String, String> = object : HashMap<String, String>()
         {
@@ -24,10 +27,12 @@ class BleGattAttributes {
                 //put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service")
                 //put(DEVICE_INFO_SERVICE, "Device Information Service")
                 put(NAME_SERVICE, "Name Service")
+                put(INFO_SERVICE, "Info Service")
                 //characteristics.
                 //put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
                 //put(MANUFACTURER_NAME_STRING, "Manufacturer Name String")
-                put(NAME_STRING, "Name String")
+                put(NAME_CHAR, "Name Char")
+                put(NICKNAME_CHAR, "Nickname Char")
             }
         }
 
@@ -37,23 +42,14 @@ class BleGattAttributes {
         }
 
         /**
-         * Construct the field values for name characteristic
+         * Construct the field values for nickname characteristic
          */
-        fun getNameByteArray(): ByteArray {
-            val field = ByteArray(12)
-            field[0] = (0x00).toByte()
-            field[1] = (0x01).toByte()
-            field[2] = (0x02).toByte()
-            field[3] = (0x03).toByte()
-            field[4] = (0x04).toByte()
-            field[5] = (0x05).toByte()
-            field[6] = (0x06).toByte()
-            field[7] = (0x07).toByte()
-            field[8] = (0x08).toByte()
-            field[9] = (0x09).toByte()
-            field[10] = (0x09).toByte()
-            field[11] = (0x0a).toByte()
-            return field
+        fun getNicknameByteArray(): ByteArray {
+//            val field = ByteArray(1)
+//            field[0] = (0x0c).toByte()
+//            return field
+            val nickname = BleHomeMainActivity.broadcastNickname
+            return nickname.toByteArray()
         }
         /**
          * Return a configured [BluetoothGattService] instance for the
@@ -65,7 +61,7 @@ class BleGattAttributes {
                 BluetoothGattService.SERVICE_TYPE_PRIMARY)
             // name characteristic
             val nameCharacteristic = BluetoothGattCharacteristic(
-                UUID.fromString(NAME_STRING),
+                UUID.fromString(NAME_CHAR),
                 //Read-only characteristic, supports notifications
                 BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ)
@@ -73,10 +69,27 @@ class BleGattAttributes {
                 UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG),
                 //Read/write descriptor
                 BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
-            //configDescriptor.value = "hello".toByteArray()
             nameCharacteristic.addDescriptor(configDescriptor)
 
             service.addCharacteristic(nameCharacteristic)
+            return service
+        }
+        /**
+         * Return a configured [BluetoothGattService] instance for the
+         * Info Service.
+         */
+        fun createInfoService(): BluetoothGattService {
+            val service = BluetoothGattService(
+                UUID.fromString(INFO_SERVICE),
+                BluetoothGattService.SERVICE_TYPE_PRIMARY)
+            // nick name characteristic
+            val nickNameCharacteristic = BluetoothGattCharacteristic(
+                UUID.fromString(NICKNAME_CHAR),
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ)
+
+            service.addCharacteristic(nickNameCharacteristic)
             return service
         }
     }

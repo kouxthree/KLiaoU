@@ -16,7 +16,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
 import com.kliaou.service.BleGattAttributes
-import com.kliaou.service.BleGattService
+import com.kliaou.service.BleGattClientService
 import java.util.*
 
 class BleResultDetailActivity : AppCompatActivity() {
@@ -25,7 +25,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
     private var mGattServicesList: ExpandableListView? = null
-    private var mBleGattService: BleGattService? = null
+    private var mBleGattClientService: BleGattClientService? = null
     private var mGattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? =
         ArrayList()
     private var mConnected = false
@@ -36,16 +36,16 @@ class BleResultDetailActivity : AppCompatActivity() {
     // Code to manage Service lifecycle.
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            mBleGattService = (service as BleGattService.LocalBinder).getService()
-            if (!mBleGattService!!.initialize()) {
+            mBleGattClientService = (service as BleGattClientService.LocalBinder).getService()
+            if (!mBleGattClientService!!.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth")
                 finish()
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBleGattService!!.connect(mDeviceAddress)
+            mBleGattClientService!!.connect(mDeviceAddress)
         }
         override fun onServiceDisconnected(componentName: ComponentName) {
-            mBleGattService = null
+            mBleGattClientService = null
         }
     }
     /*
@@ -59,23 +59,23 @@ class BleResultDetailActivity : AppCompatActivity() {
     private val mGattUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                BleGattService.ACTION_GATT_CONNECTED -> {
+                BleGattClientService.ACTION_GATT_CONNECTED -> {
                     mConnected = true
                     updateConnectionState(R.string.connected)
                     invalidateOptionsMenu()
                 }
-                BleGattService.ACTION_GATT_DISCONNECTED -> {
+                BleGattClientService.ACTION_GATT_DISCONNECTED -> {
                     mConnected = false
                     updateConnectionState(R.string.disconnected)
                     invalidateOptionsMenu()
                     clearUI()
                 }
-                BleGattService.ACTION_GATT_SERVICES_DISCOVERED -> {
+                BleGattClientService.ACTION_GATT_SERVICES_DISCOVERED -> {
                     // Show all the supported services and characteristics on the user interface.
-                    displayGattServices(mBleGattService?.getSupportedGattServices())
+                    displayGattServices(mBleGattClientService?.getSupportedGattServices())
                 }
-                BleGattService.ACTION_DATA_AVAILABLE -> {
-                    displayData(intent.getStringExtra(BleGattService.EXTRA_DATA))
+                BleGattClientService.ACTION_DATA_AVAILABLE -> {
+                    displayData(intent.getStringExtra(BleGattClientService.EXTRA_DATA))
                 }
             }
         }
@@ -95,16 +95,16 @@ class BleResultDetailActivity : AppCompatActivity() {
                     // If there is an active notification on a characteristic, clear
                     // it first so it doesn't update the data field on the user interface.
                     if (mNotifyCharacteristic != null) {
-                        mBleGattService?.setCharacteristicNotification(
+                        mBleGattClientService?.setCharacteristicNotification(
                             mNotifyCharacteristic!!, false
                         )
                         mNotifyCharacteristic = null
                     }
-                    mBleGattService?.readCharacteristic(characteristic)
+                    mBleGattClientService?.readCharacteristic(characteristic)
                 }
                 if (charaProp or BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0) {
                     mNotifyCharacteristic = characteristic
-                    mBleGattService?.setCharacteristicNotification(
+                    mBleGattClientService?.setCharacteristicNotification(
                         characteristic, true
                     )
                 }
@@ -133,7 +133,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         mDataField = findViewById<View>(R.id.data_value) as TextView
         supportActionBar?.title = mDeviceName
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val gattServiceIntent = Intent(this, BleGattService::class.java)
+        val gattServiceIntent = Intent(this, BleGattClientService::class.java)
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -150,11 +150,11 @@ class BleResultDetailActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_connect -> {
-                mBleGattService?.connect(mDeviceAddress)
+                mBleGattClientService?.connect(mDeviceAddress)
                 return true
             }
             R.id.menu_disconnect -> {
-                mBleGattService?.disconnect()
+                mBleGattClientService?.disconnect()
                 return true
             }
             android.R.id.home -> {
@@ -168,8 +168,8 @@ class BleResultDetailActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
-        if (mBleGattService != null) {
-            val result: Boolean = mBleGattService?.connect(mDeviceAddress) == true
+        if (mBleGattClientService != null) {
+            val result: Boolean = mBleGattClientService?.connect(mDeviceAddress) == true
             Log.d(
                 TAG,
                 "Connect request result=$result"
@@ -183,7 +183,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unbindService(mServiceConnection)
-        mBleGattService = null
+        mBleGattClientService = null
     }
 
     private fun updateConnectionState(resourceId: Int) {
@@ -217,11 +217,11 @@ class BleResultDetailActivity : AppCompatActivity() {
             gattServiceData.add(currentServiceData)
             val gattCharacteristicGroupData = ArrayList<HashMap<String, String?>>()
             val gattCharacteristics = gattService.characteristics
-            val charas = ArrayList<BluetoothGattCharacteristic>()
+            val chars = ArrayList<BluetoothGattCharacteristic>()
 
             // Loops through available Characteristics.
             for (gattCharacteristic in gattCharacteristics) {
-                charas.add(gattCharacteristic)
+                chars.add(gattCharacteristic)
                 val currentCharaData = HashMap<String, String?>()
                 uuid = gattCharacteristic.uuid.toString()
                 currentCharaData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownCharaString)
@@ -229,7 +229,7 @@ class BleResultDetailActivity : AppCompatActivity() {
                 currentCharaData[LIST_UUID] = uuid
                 gattCharacteristicGroupData.add(currentCharaData)
             }
-            mGattCharacteristics!!.add(charas)
+            mGattCharacteristics!!.add(chars)
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
         val gattServiceAdapter = SimpleExpandableListAdapter(
@@ -252,10 +252,10 @@ class BleResultDetailActivity : AppCompatActivity() {
         const val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
         private fun makeGattUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
-            intentFilter.addAction(BleGattService.ACTION_GATT_CONNECTED)
-            intentFilter.addAction(BleGattService.ACTION_GATT_DISCONNECTED)
-            intentFilter.addAction(BleGattService.ACTION_GATT_SERVICES_DISCOVERED)
-            intentFilter.addAction(BleGattService.ACTION_DATA_AVAILABLE)
+            intentFilter.addAction(BleGattClientService.ACTION_GATT_CONNECTED)
+            intentFilter.addAction(BleGattClientService.ACTION_GATT_DISCONNECTED)
+            intentFilter.addAction(BleGattClientService.ACTION_GATT_SERVICES_DISCOVERED)
+            intentFilter.addAction(BleGattClientService.ACTION_DATA_AVAILABLE)
             return intentFilter
         }
     }
