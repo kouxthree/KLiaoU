@@ -11,6 +11,9 @@
     <string name="disconnected">Disconnected</string>
     <string name="no_data">No data</string>
     <string name="label_data">Data:</string>
+    <string name="label_gender">Gender:</string>
+    <string name="label_nickname">Nickname:</string>
+    <string name="label_location">Location:</string>
     <string name="label_device_address">Device address:</string>
     <string name="label_state">State:</string>
     <string name="menu_refresh">Refresh</string>

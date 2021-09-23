@@ -21,10 +21,11 @@ import java.util.*
 
 class BleResultDetailActivity : AppCompatActivity() {
     private var mConnectionState: TextView? = null
-    private var mDataField: TextView? = null
+    private var mRemoteGender: TextView? = null
+    private var mRemoteNickname: TextView? = null
+    private var mRemoteLocation: TextView? = null
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
-    private var mGattServicesList: ExpandableListView? = null
     private var mBleGattClientService: BleGattClientService? = null
     private var mGattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? =
         ArrayList()
@@ -75,47 +76,22 @@ class BleResultDetailActivity : AppCompatActivity() {
                     displayGattServices(mBleGattClientService?.getSupportedGattServices())
                 }
                 BleGattClientService.ACTION_DATA_AVAILABLE -> {
-                    displayData(intent.getStringExtra(BleGattClientService.EXTRA_DATA))
+                    displayData(intent)
                 }
             }
         }
     }
-    /*
-    // If a given GATT characteristic is selected, check for supported features.
-    // hear we check 'Read' and 'Notify' features.
-    // See http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
-    // list of supported characteristic features.
-    */
-    private val servicesListClickListner =
-        OnChildClickListener { parent, v, groupPosition, childPosition, id ->
-            if (mGattCharacteristics != null) {
-                val characteristic = mGattCharacteristics!![groupPosition][childPosition]
-                val charaProp = characteristic.properties
-                if (charaProp or BluetoothGattCharacteristic.PROPERTY_READ > 0) {
-                    // If there is an active notification on a characteristic, clear
-                    // it first so it doesn't update the data field on the user interface.
-                    if (mNotifyCharacteristic != null) {
-                        mBleGattClientService?.setCharacteristicNotification(
-                            mNotifyCharacteristic!!, false
-                        )
-                        mNotifyCharacteristic = null
-                    }
-                    mBleGattClientService?.readCharacteristic(characteristic)
-                }
-                if (charaProp or BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0) {
-                    mNotifyCharacteristic = characteristic
-                    mBleGattClientService?.setCharacteristicNotification(
-                        characteristic, true
-                    )
-                }
-                return@OnChildClickListener true
-            }
-            false
+    private fun displayData(intent: Intent) {
+        val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
+        when(intent.getStringExtra(BleGattClientService.EXTRA_CHAR_UUID)) {
+            BleGattAttributes.NICKNAME_CHAR -> mRemoteNickname!!.text = data
         }
+    }
 
     private fun clearUI() {
-        mGattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
-        mDataField!!.setText(R.string.no_data)
+        mRemoteGender!!.setText(R.string.no_data)
+        mRemoteNickname!!.setText(R.string.no_data)
+        mRemoteLocation!!.setText(R.string.no_data)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,10 +103,10 @@ class BleResultDetailActivity : AppCompatActivity() {
 
         // Sets up UI references.
         (findViewById<View>(R.id.device_address) as TextView).text = mDeviceAddress
-        mGattServicesList = findViewById<View>(R.id.gatt_services_list) as ExpandableListView
-        mGattServicesList!!.setOnChildClickListener(servicesListClickListner)
         mConnectionState = findViewById<View>(R.id.connection_state) as TextView
-        mDataField = findViewById<View>(R.id.data_value) as TextView
+        mRemoteGender = findViewById<View>(R.id.remote_gender) as TextView
+        mRemoteNickname = findViewById<View>(R.id.remote_nickname) as TextView
+        mRemoteLocation = findViewById<View>(R.id.remote_location) as TextView
         supportActionBar?.title = mDeviceName
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BleGattClientService::class.java)
@@ -189,11 +165,6 @@ class BleResultDetailActivity : AppCompatActivity() {
     private fun updateConnectionState(resourceId: Int) {
         runOnUiThread { mConnectionState!!.setText(resourceId) }
     }
-    private fun displayData(data: String?) {
-        if (data != null) {
-            mDataField!!.text = data
-        }
-    }
     /*
     // Iterate through the supported GATT Services/Characteristics.
     // Populate the data structure that is bound to the ExpandableListView
@@ -228,22 +199,37 @@ class BleResultDetailActivity : AppCompatActivity() {
                 if(currentCharaData[LIST_NAME] == unknownCharaString) continue
                 currentCharaData[LIST_UUID] = uuid
                 gattCharacteristicGroupData.add(currentCharaData)
+                //read characteristics from server
+                readAndNotifyChars(gattCharacteristic)
             }
             mGattCharacteristics!!.add(chars)
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
-        val gattServiceAdapter = SimpleExpandableListAdapter(
-            this,
-            gattServiceData,
-            android.R.layout.simple_expandable_list_item_2,
-            arrayOf(LIST_NAME, LIST_UUID),
-            intArrayOf(android.R.id.text1, android.R.id.text2),
-            gattCharacteristicData,
-            android.R.layout.simple_expandable_list_item_2,
-            arrayOf(LIST_NAME, LIST_UUID),
-            intArrayOf(android.R.id.text1, android.R.id.text2)
-        )
-        mGattServicesList!!.setAdapter(gattServiceAdapter)
+    }
+    /*
+     we check 'Read' and 'Notify' features.
+     See http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
+     list of supported characteristic features.
+   */
+    private fun readAndNotifyChars(characteristic: BluetoothGattCharacteristic) {
+        val charaProp = characteristic.properties
+        if (charaProp or BluetoothGattCharacteristic.PROPERTY_READ > 0) {
+            // If there is an active notification on a characteristic, clear
+            // it first so it doesn't update the data field on the user interface.
+            if (mNotifyCharacteristic != null) {
+                mBleGattClientService?.setCharacteristicNotification(
+                    mNotifyCharacteristic!!, false
+                )
+                mNotifyCharacteristic = null
+            }
+            mBleGattClientService?.readCharacteristic(characteristic)
+        }
+        if (charaProp or BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0) {
+            mNotifyCharacteristic = characteristic
+            mBleGattClientService?.setCharacteristicNotification(
+                characteristic, true
+            )
+        }
     }
 
     companion object {

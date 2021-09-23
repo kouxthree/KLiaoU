@@ -34,6 +34,7 @@ class BleGattClientService: Service() {
         const val ACTION_GATT_DISCONNECTED = "com.kliaou.ACTION_GATT_DISCONNECTED"
         const val ACTION_GATT_SERVICES_DISCOVERED = "com.kliaou.ACTION_GATT_SERVICES_DISCOVERED"
         const val ACTION_DATA_AVAILABLE = "com.kliaou.ACTION_DATA_AVAILABLE"
+        const val EXTRA_CHAR_UUID = "com.kliaou.EXTRA_CHAR_UUID"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
         val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.NAME_CHAR)
     }
@@ -107,6 +108,7 @@ class BleGattClientService: Service() {
                 data.forEach { byteChar ->
                     stringBuilder.append(String.format("%02X ", byteChar))
                 }
+                intent.putExtra(EXTRA_CHAR_UUID, characteristic.uuid.toString())
                 intent.putExtra(EXTRA_DATA,  String(data) + "\n" + stringBuilder.toString())
             }
 //        }
