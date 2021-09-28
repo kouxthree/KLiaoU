@@ -9,9 +9,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ExpandableListView
-import android.widget.ExpandableListView.OnChildClickListener
-import android.widget.SimpleExpandableListAdapter
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
