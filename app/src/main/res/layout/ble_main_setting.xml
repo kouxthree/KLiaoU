@@ -61,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
                     android:padding="10dp"
-                    android:text="男"
+                    android:text="@string/gender_male"
                     android:textSize="20sp" />
 
                 <RadioButton
@@ -70,7 +70,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
                     android:padding="10dp"
-                    android:text="女"
+                    android:text="@string/gender_female"
                     android:textSize="20sp" />
 
                 <RadioButton
@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
                     android:padding="10dp"
-                    android:text="不公开"
+                    android:text="@string/gender_other1"
                     android:textSize="20sp" />
             </RadioGroup>
 
@@ -103,7 +103,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
                     android:padding="10dp"
-                    android:text="男"
+                    android:text="@string/gender_male"
                     android:textSize="20sp" />
 
                 <RadioButton
@@ -112,7 +112,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
                     android:padding="10dp"
-                    android:text="女"
+                    android:text="@string/gender_female"
                     android:textSize="20sp" />
 
                 <RadioButton
@@ -121,7 +121,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
                     android:padding="10dp"
-                    android:text="不问"
+                    android:text="@string/gender_other2"
                     android:textSize="20sp" />
             </RadioGroup>
 

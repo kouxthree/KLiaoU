@@ -11,6 +11,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.kliaou.ADVERTISE_DATA_FEMALE
+import com.kliaou.ADVERTISE_DATA_MALE
 import com.kliaou.R
 import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattClientService
@@ -18,11 +20,12 @@ import java.util.*
 
 class BleResultDetailActivity : AppCompatActivity() {
     private var mConnectionState: TextView? = null
-    private var mRemoteGender: TextView? = null
-    private var mRemoteNickname: TextView? = null
-    private var mRemoteLocation: TextView? = null
+    private var mRemoteGenderView: TextView? = null
+    private var mRemoteNicknameView: TextView? = null
+    private var mRemoteLocationView: TextView? = null
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
+    private var mRemoteGenderByte: Byte? = null
     private var mBleGattClientService: BleGattClientService? = null
     private var mGattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? =
         ArrayList()
@@ -73,22 +76,33 @@ class BleResultDetailActivity : AppCompatActivity() {
                     displayGattServices(mBleGattClientService?.getSupportedGattServices())
                 }
                 BleGattClientService.ACTION_DATA_AVAILABLE -> {
-                    displayData(intent)
+                    displayGattCharInfo(intent)
                 }
             }
         }
     }
-    private fun displayData(intent: Intent) {
-        val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
+    //display gatt characteristic info
+    private fun displayGattCharInfo(intent: Intent) {
         when(intent.getStringExtra(BleGattClientService.EXTRA_CHAR_UUID)) {
-            BleGattAttributes.NICKNAME_CHAR -> mRemoteNickname!!.text = data
+            BleGattAttributes.NICKNAME_CHAR -> {
+                val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
+                mRemoteNicknameView!!.text = data
+            }
+        }
+    }
+    //display advertise service info
+    private fun displayAdvertiseServiceInfo() {
+        when(mRemoteGenderByte) {
+            ADVERTISE_DATA_MALE -> mRemoteGenderView!!.setText(R.string.gender_male)
+            ADVERTISE_DATA_FEMALE -> mRemoteGenderView!!.setText(R.string.gender_female)
+            else -> mRemoteGenderView!!.setText(R.string.gender_other1)
         }
     }
 
     private fun clearUI() {
-        mRemoteGender!!.setText(R.string.no_data)
-        mRemoteNickname!!.setText(R.string.no_data)
-        mRemoteLocation!!.setText(R.string.no_data)
+//        mRemoteGenderView!!.setText(R.string.no_data)
+        mRemoteNicknameView!!.setText(R.string.no_data)
+        mRemoteLocationView!!.setText(R.string.no_data)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,14 +111,16 @@ class BleResultDetailActivity : AppCompatActivity() {
         val intent = intent
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
+        mRemoteGenderByte = intent.getByteExtra(EXTRAS_REMOTE_GENDER, 0x00)
 
         // Sets up UI references.
         (findViewById<View>(R.id.device_address) as TextView).text = mDeviceAddress
         mConnectionState = findViewById<View>(R.id.connection_state) as TextView
-        mRemoteGender = findViewById<View>(R.id.remote_gender) as TextView
-        mRemoteNickname = findViewById<View>(R.id.remote_nickname) as TextView
-        mRemoteLocation = findViewById<View>(R.id.remote_location) as TextView
+        mRemoteGenderView = findViewById<View>(R.id.remote_gender) as TextView
+        mRemoteNicknameView = findViewById<View>(R.id.remote_nickname) as TextView
+        mRemoteLocationView = findViewById<View>(R.id.remote_location) as TextView
         supportActionBar?.title = mDeviceName
+        displayAdvertiseServiceInfo()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BleGattClientService::class.java)
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
@@ -186,7 +202,6 @@ class BleResultDetailActivity : AppCompatActivity() {
             val gattCharacteristicGroupData = ArrayList<HashMap<String, String?>>()
             val gattCharacteristics = gattService.characteristics
             val chars = ArrayList<BluetoothGattCharacteristic>()
-
             // Loops through available Characteristics.
             for (gattCharacteristic in gattCharacteristics) {
                 chars.add(gattCharacteristic)
@@ -233,6 +248,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         private val TAG = BleResultDetailActivity::class.java.simpleName
         const val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
         const val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
+        const val EXTRAS_REMOTE_GENDER = "REMOTE_GENDER"
         private fun makeGattUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
             intentFilter.addAction(BleGattClientService.ACTION_GATT_CONNECTED)

@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.kliaou.ADVERTISE_DATA_MALE
+import com.kliaou.ADVERTISE_UUID
 import com.kliaou.databinding.BleResultItemBinding
 import com.kliaou.ui.home.BleResultDetailActivity
 
@@ -72,7 +74,14 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
             //scanned device name and mac address
             showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_NAME, _scanResult?.device?.name)
             showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_ADDRESS, _scanResult?.device?.address)
+            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_REMOTE_GENDER, getRemoteGender())
             context.startActivity(showActivityIntent)
+        }
+        private fun getRemoteGender(): Byte {
+            val serviceDataMap = _scanResult?.scanRecord?.getServiceData()
+            val serviceData = serviceDataMap?.get(ADVERTISE_UUID)
+            return if(serviceData?.size == 1) serviceData[0]//male or female
+            else 0x00//other cases
         }
     }
 
