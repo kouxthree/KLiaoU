@@ -92,10 +92,14 @@ class BleResultDetailActivity : AppCompatActivity() {
     }
     //display advertise service info
     private fun displayAdvertiseServiceInfo() {
-        when(mRemoteGenderByte) {
+        if(mRemoteGenderBytes == null) return
+        if(mRemoteGenderBytes!!.size > 1){
+            mRemoteGenderView!!.setText(R.string.gender_other1)
+            return
+        }
+        when(mRemoteGenderBytes!![0]) {
             ADVERTISE_DATA_MALE -> mRemoteGenderView!!.setText(R.string.gender_male)
             ADVERTISE_DATA_FEMALE -> mRemoteGenderView!!.setText(R.string.gender_female)
-            else -> mRemoteGenderView!!.setText(R.string.gender_other1)
         }
     }
 
