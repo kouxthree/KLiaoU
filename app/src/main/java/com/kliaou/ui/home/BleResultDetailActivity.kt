@@ -25,7 +25,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     private var mRemoteLocationView: TextView? = null
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
-    private var mRemoteGenderByte: Byte? = null
+    private var mRemoteGenderBytes: ByteArray? = null
     private var mBleGattClientService: BleGattClientService? = null
     private var mGattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? =
         ArrayList()
@@ -111,7 +111,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         val intent = intent
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
-        mRemoteGenderByte = intent.getByteExtra(EXTRAS_REMOTE_GENDER, 0x00)
+        mRemoteGenderBytes = intent.getByteArrayExtra(EXTRAS_REMOTE_GENDER)
 
         // Sets up UI references.
         (findViewById<View>(R.id.device_address) as TextView).text = mDeviceAddress

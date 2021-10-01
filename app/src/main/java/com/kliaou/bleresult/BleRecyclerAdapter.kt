@@ -74,14 +74,9 @@ class BleRecyclerAdapter : RecyclerView.Adapter<BleRecyclerAdapter.ResultHolder>
             //scanned device name and mac address
             showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_NAME, _scanResult?.device?.name)
             showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_ADDRESS, _scanResult?.device?.address)
-            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_REMOTE_GENDER, getRemoteGender())
+            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_REMOTE_GENDER,
+                _scanResult?.scanRecord?.serviceData?.get(ADVERTISE_UUID))
             context.startActivity(showActivityIntent)
-        }
-        private fun getRemoteGender(): Byte {
-            val serviceDataMap = _scanResult?.scanRecord?.getServiceData()
-            val serviceData = serviceDataMap?.get(ADVERTISE_UUID)
-            return if(serviceData?.size == 1) serviceData[0]//male or female
-            else 0x00//other cases
         }
     }
 
