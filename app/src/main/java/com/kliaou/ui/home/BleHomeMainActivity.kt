@@ -28,7 +28,6 @@ import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.datastore.proto.SEX
 import com.kliaou.service.BleAdvertiserService
 import com.kliaou.service.BleGattAttributes
-import com.kliaou.ui.setting.remoteSexDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
