@@ -68,8 +68,7 @@ class BleGattClientService: Service() {
         }
         override fun onCharacteristicRead(
             gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic,
-            status: Int) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
+            status: Int) { if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
             }
         }

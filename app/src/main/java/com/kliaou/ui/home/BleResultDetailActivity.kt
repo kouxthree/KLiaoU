@@ -33,6 +33,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     private var mNotifyCharacteristic: BluetoothGattCharacteristic? = null
     private val LIST_NAME = "NAME"
     private val LIST_UUID = "UUID"
+    private var charRemoteNickname: BluetoothGattCharacteristic? = null
 
     // Code to manage Service lifecycle.
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
@@ -128,6 +129,8 @@ class BleResultDetailActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BleGattClientService::class.java)
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
+        //set characteristics clicked listener
+        mRemoteNicknameView!!.setOnClickListener(remoteNicknameClickedListener())
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gatt_services, menu)
@@ -202,6 +205,8 @@ class BleResultDetailActivity : AppCompatActivity() {
             currentServiceData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownServiceString)
             if(currentServiceData[LIST_NAME] == unknownServiceString) continue
             currentServiceData[LIST_UUID] = uuid
+            //check if already added
+            if(isAlreadyAdded(gattServiceData, uuid)) continue
             gattServiceData.add(currentServiceData)
             val gattCharacteristicGroupData = ArrayList<HashMap<String, String?>>()
             val gattCharacteristics = gattService.characteristics
@@ -214,13 +219,28 @@ class BleResultDetailActivity : AppCompatActivity() {
                 currentCharaData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownCharaString)
                 if(currentCharaData[LIST_NAME] == unknownCharaString) continue
                 currentCharaData[LIST_UUID] = uuid
+                //check if already added
+                if(isAlreadyAdded(gattCharacteristicGroupData, uuid)) continue
                 gattCharacteristicGroupData.add(currentCharaData)
-                //read characteristics from server
-                readAndNotifyChars(gattCharacteristic)
+                if(BleGattAttributes.NICKNAME_CHAR.equals(uuid)) {
+                    //remotenickname char
+                    charRemoteNickname = gattCharacteristic
+                    //read characteristics from server
+                    readAndNotifyChars(gattCharacteristic)
+                }
             }
             mGattCharacteristics!!.add(chars)
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
+    }
+    //check if already added
+    private fun isAlreadyAdded(
+        lst: ArrayList<HashMap<String, String?>>, item: String): Boolean {
+        if (lst == null) return false
+        lst.forEach {
+            if (it[LIST_UUID] != null && it[LIST_UUID].equals(item)) return true
+        }
+        return false
     }
     /*
      we check 'Read' and 'Notify' features.
@@ -246,6 +266,10 @@ class BleResultDetailActivity : AppCompatActivity() {
                 characteristic, true
             )
         }
+    }
+    //characteristics clicked listener
+    private fun remoteNicknameClickedListener() = View.OnClickListener {
+        if(charRemoteNickname != null) readAndNotifyChars(charRemoteNickname!!)
     }
 
     companion object {
