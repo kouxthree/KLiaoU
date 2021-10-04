@@ -1,5 +1,7 @@
 package com.kliaou.ui.home
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -90,9 +92,14 @@ class BleMainSettingActivity : AppCompatActivity() {
         binding.rdbRemoteSexOther.setOnClickListener{
             lifecycleScope.launch { storeRemoteSex(SEX.OTHER) }
         }
+        //init broadcast notify flag
+        BleHomeMainActivity.broadcastNotifyFlag = false
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
+            val data = Intent()
+//            data.putExtra("streetkey", "streetname")
+            setResult(Activity.RESULT_OK, data)
             finish()
             return true
         }
@@ -120,6 +127,7 @@ class BleMainSettingActivity : AppCompatActivity() {
         }
         //update broadcast nickname
         BleHomeMainActivity.broadcastNickname = mynickname
+        BleHomeMainActivity.broadcastNotifyFlag = true
     }
     private suspend fun storeMySex(sex: SEX) {
         applicationContext.mySexDataStore.updateData { currentSettings ->

@@ -1,6 +1,7 @@
 package com.kliaou.ui.home
 
 import android.Manifest
+import android.app.Activity
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.BroadcastReceiver
@@ -38,6 +39,8 @@ import android.location.LocationManager
 import android.app.AlertDialog
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 
 class BleHomeMainActivity : AppCompatActivity() {
@@ -48,7 +51,8 @@ class BleHomeMainActivity : AppCompatActivity() {
             R.id.ble_main_menu_setttings -> {
                 val intent = Intent(applicationContext, BleMainSettingActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                applicationContext.startActivity(intent)
+//                applicationContext.startActivity(intent)
+                resultBleMainSettingActivity.launch(intent)
                 return true
             }
         }
@@ -77,6 +81,15 @@ class BleHomeMainActivity : AppCompatActivity() {
         //scanner
         createScanner()
     }
+
+    //callbacks after sub activity execution ended
+    private val resultBleMainSettingActivity =
+        registerForActivityResult(StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK && broadcastNotifyFlag) {
+//                val value = it.data?.getStringExtra("input")
+                notifyRegisteredDevices()
+            }
+        }
 
     //bluetooth
     private fun enableBluetooth() {
@@ -201,7 +214,8 @@ class BleHomeMainActivity : AppCompatActivity() {
      * Send a service notification to any devices that are subscribed
      * to the characteristic.
      */
-    private fun notifyRegisteredDevices(timestamp: Long, adjustReason: Byte) {
+    //private fun notifyRegisteredDevices(timestamp: Long, adjustReason: Byte) {
+    private fun notifyRegisteredDevices() {
         if (registeredDevices.isEmpty()) {
             Log.i(TAG, "No subscribers registered")
             return
@@ -224,6 +238,8 @@ class BleHomeMainActivity : AppCompatActivity() {
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "BluetoothDevice CONNECTED: $device")
+                //add any device connected
+                registeredDevices.add(device)
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "BluetoothDevice DISCONNECTED: $device")
                 //Remove device from any active subscriptions
@@ -542,6 +558,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     companion object {
         private val TAG = BleHomeMainActivity::class.java.simpleName
         var broadcastNickname: String = ""
+        var broadcastNotifyFlag: Boolean = false
     }
 }
 
