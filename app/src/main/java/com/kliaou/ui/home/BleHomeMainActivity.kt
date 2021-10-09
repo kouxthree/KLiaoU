@@ -52,7 +52,7 @@ class BleHomeMainActivity : AppCompatActivity() {
                 val intent = Intent(applicationContext, BleMainSettingActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 //                applicationContext.startActivity(intent)
-                resultBleMainSettingActivity.launch(intent)
+                startBleMainSettingActivity.launch(intent)
                 return true
             }
         }
@@ -82,8 +82,8 @@ class BleHomeMainActivity : AppCompatActivity() {
         createScanner()
     }
 
-    //callbacks after sub activity execution ended
-    private val resultBleMainSettingActivity =
+    //start setting activity
+    private val startBleMainSettingActivity =
         registerForActivityResult(StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK && broadcastNotifyFlag) {
 //                val value = it.data?.getStringExtra("input")
@@ -286,7 +286,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         override fun onDescriptorReadRequest(
             device: BluetoothDevice, requestId: Int, offset: Int,
             descriptor: BluetoothGattDescriptor) {
-            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG) == descriptor.uuid) {
+            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_NOTIFY) == descriptor.uuid) {
                 Log.d(TAG, "Config descriptor read")
                 val returnValue = if (registeredDevices.contains(device)) {
                     BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
@@ -311,7 +311,7 @@ class BleHomeMainActivity : AppCompatActivity() {
             descriptor: BluetoothGattDescriptor,
             preparedWrite: Boolean, responseNeeded: Boolean,
             offset: Int, value: ByteArray) {
-            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG) == descriptor.uuid) {
+            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_NOTIFY) == descriptor.uuid) {
                 if (Arrays.equals(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, value)) {
                     Log.d(TAG, "Subscribe device to notifications: $device")
                     registeredDevices.add(device)

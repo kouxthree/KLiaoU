@@ -222,8 +222,8 @@ class BleResultDetailActivity : AppCompatActivity() {
                 //check if already added
                 if(isAlreadyAdded(gattCharacteristicGroupData, uuid)) continue
                 gattCharacteristicGroupData.add(currentCharaData)
-                if(BleGattAttributes.NICKNAME_CHAR.equals(uuid)) {
-                    //remotenickname char
+                if(BleGattAttributes.NICKNAME_CHAR == uuid) {
+                    //remote nickname char
                     charRemoteNickname = gattCharacteristic
                     //read characteristics from server
                     readAndNotifyChars(gattCharacteristic)
@@ -235,7 +235,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     }
     //check if already added
     private fun isAlreadyAdded(
-        lst: ArrayList<HashMap<String, String?>>, item: String): Boolean {
+        lst: ArrayList<HashMap<String, String?>>?, item: String): Boolean {
         if (lst == null) return false
         lst.forEach {
             if (it[LIST_UUID] != null && it[LIST_UUID].equals(item)) return true

@@ -17,7 +17,7 @@ class BleGattAttributes {
         const val NICKNAME_CHAR = "00002af7-0000-1000-8000-00805f9b34fb"
         //val MANUFACTURER_NAME_STRING = "00002a29-0000-1000-8000-00805f9b34fb"
         //val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
-        const val CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb"
+        const val CLIENT_CHARACTERISTIC_NOTIFY = "00002902-0000-1000-8000-00805f9b34fb"
         const val CLIENT_USER_DESCRIPTOR = "00002901-0000-1000-8000-00805f9b34fb"
 
         private val attributes: HashMap<String, String> = object : HashMap<String, String>()
@@ -66,7 +66,7 @@ class BleGattAttributes {
                 BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ)
             val configDescriptor = BluetoothGattDescriptor(
-                UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG),
+                UUID.fromString(CLIENT_CHARACTERISTIC_NOTIFY),
                 //Read/write descriptor
                 BluetoothGattDescriptor.PERMISSION_READ or BluetoothGattDescriptor.PERMISSION_WRITE)
             nameCharacteristic.addDescriptor(configDescriptor)

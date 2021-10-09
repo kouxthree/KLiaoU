@@ -108,7 +108,8 @@ class BleGattClientService: Service() {
                     stringBuilder.append(String.format("%02X ", byteChar))
                 }
                 intent.putExtra(EXTRA_CHAR_UUID, characteristic.uuid.toString())
-                intent.putExtra(EXTRA_DATA,  String(data) + "\n" + stringBuilder.toString())
+//                intent.putExtra(EXTRA_DATA,  String(data) + "\n" + stringBuilder.toString())
+                intent.putExtra(EXTRA_DATA,  String(data))
             }
 //        }
         sendBroadcast(intent)
@@ -242,7 +243,7 @@ class BleGattClientService: Service() {
         // when client config evoked
         if (UUID_NAME_CHAR == characteristic.uuid && characteristic.descriptors.size > 0) {
             val descriptor: BluetoothGattDescriptor = characteristic
-                .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG))
+                .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_NOTIFY))
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             mBluetoothGatt!!.writeDescriptor(descriptor)
         }
