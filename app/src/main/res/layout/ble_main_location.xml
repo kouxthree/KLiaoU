@@ -20,6 +20,8 @@
         android:inputType="text"
         android:maxLines="1"
         android:maxLength="8"
+        android:selectAllOnFocus="true"
+        android:imeOptions="actionSend"
         android:textSize="20sp" />
 
     <LinearLayout

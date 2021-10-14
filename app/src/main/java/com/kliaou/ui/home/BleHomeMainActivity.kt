@@ -39,6 +39,8 @@ import android.location.LocationManager
 import android.app.AlertDialog
 import android.os.Bundle
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
@@ -46,6 +48,14 @@ import android.widget.EditText
 
 import com.kliaou.MainActivity
 import com.kliaou.databinding.BleMainLocationBinding
+import android.view.inputmethod.EditorInfo
+
+import android.widget.TextView
+
+import android.widget.TextView.OnEditorActionListener
+import android.content.DialogInterface
+
+
 
 
 class BleHomeMainActivity : AppCompatActivity() {
@@ -87,6 +97,12 @@ class BleHomeMainActivity : AppCompatActivity() {
         createScanner()
         //set my location edit dialog clicked listener
         _binding.textMyLocation!!.setOnClickListener(myLocationClickedListener())
+        //set my location changed listener//not used
+//        _binding.textMyLocation!!.addTextChangedListener(object:  TextWatcher{
+//            override fun afterTextChanged(p0: Editable?) {}
+//            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+//            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+//        })
     }
 
     //start setting activity
@@ -99,6 +115,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     //my location edit dialog clicked listener
     private fun myLocationClickedListener() = View.OnClickListener {
+        val strBeforeEdited = _binding.textMyLocation.text //string before edited
         val alert = AlertDialog.Builder(this)
         val mBinding = BleMainLocationBinding.inflate(layoutInflater)
         if(_binding.textMyLocation.text != getString(R.string.my_location)) {
@@ -107,15 +124,34 @@ class BleHomeMainActivity : AppCompatActivity() {
         alert.setView(mBinding.root.rootView)
         val alertDialog = alert.create()
         alertDialog.setCanceledOnTouchOutside(true)
+        //cancel button
         mBinding.btnCancel.setOnClickListener {
             alertDialog.dismiss()
         }
+        //okay button
         mBinding.btnOkay.setOnClickListener {
             _binding.textMyLocation.text = mBinding.txtLocation.text
             alertDialog.dismiss()
         }
+        //text send action// combine with xml setting -> android:imeOptions="actionSend"
+        mBinding.txtLocation.setOnEditorActionListener { v, actionId, event ->
+            var handled = false
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                _binding.textMyLocation.text = mBinding.txtLocation.text
+                alertDialog.dismiss()
+                handled = true
+            }
+            handled
+        }
+        //dialog dismiss listener
+        alertDialog.setOnDismissListener {
+            if(strBeforeEdited != _binding.textMyLocation.text) {
+                notifyRegisteredDevices()
+            }
+        }
         alertDialog.show()
     }
+
 
     //bluetooth
     private fun enableBluetooth() {
