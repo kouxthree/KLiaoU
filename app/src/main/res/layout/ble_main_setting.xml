@@ -26,7 +26,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="昵称"
+                android:text="@string/my_nickname"
                 android:textSize="16sp"
                 android:textStyle="bold" />
             <EditText
@@ -45,7 +45,7 @@
                 android:id="@+id/my_sex"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="我的性别"
+                android:text="@string/my_gender"
                 android:textSize="16sp"
                 android:textStyle="bold" />
             <RadioGroup
@@ -87,7 +87,7 @@
                 android:id="@+id/remote_sex"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="寻找"
+                android:text="@string/search_gender"
                 android:textSize="16sp"
                 android:textStyle="bold" />
             <RadioGroup

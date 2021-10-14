@@ -38,8 +38,13 @@
     <string name="bt_notif_txt">Discoverable to others</string>
     <string name="refresh">Refresh</string>
 
+    <string name="my_location">我的位置</string>
+    <string name="my_nickname">我的昵称</string>
+    <string name="my_gender">我的性别</string>
+    <string name="search_gender">寻找性别</string>
     <string name="gender_male">男</string>
     <string name="gender_female">女</string>
     <string name="gender_other1">不公开</string>
     <string name="gender_other2">不问</string>
+
 </resources>

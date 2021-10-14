@@ -34,6 +34,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     private val LIST_NAME = "NAME"
     private val LIST_UUID = "UUID"
     private var charRemoteNickname: BluetoothGattCharacteristic? = null
+    private var charRemoteLocation: BluetoothGattCharacteristic? = null
 
     // Code to manage Service lifecycle.
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
@@ -46,10 +47,12 @@ class BleResultDetailActivity : AppCompatActivity() {
             // Automatically connects to the device upon successful start-up initialization.
             mBleGattClientService!!.connect(mDeviceAddress)
         }
+
         override fun onServiceDisconnected(componentName: ComponentName) {
             mBleGattClientService = null
         }
     }
+
     /*
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -82,23 +85,29 @@ class BleResultDetailActivity : AppCompatActivity() {
             }
         }
     }
+
     //display gatt characteristic info
     private fun displayGattCharInfo(intent: Intent) {
-        when(intent.getStringExtra(BleGattClientService.EXTRA_CHAR_UUID)) {
+        when (intent.getStringExtra(BleGattClientService.EXTRA_CHAR_UUID)) {
             BleGattAttributes.NICKNAME_CHAR -> {
                 val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
                 mRemoteNicknameView!!.text = data
             }
+            BleGattAttributes.LOCATION_CHAR -> {
+                val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
+                mRemoteLocationView!!.text = data
+        }
         }
     }
+
     //display advertise service info
     private fun displayAdvertiseServiceInfo() {
-        if(mRemoteGenderBytes == null) return
-        if(mRemoteGenderBytes!!.size > 1){
+        if (mRemoteGenderBytes == null) return
+        if (mRemoteGenderBytes!!.size > 1) {
             mRemoteGenderView!!.setText(R.string.gender_other1)
             return
         }
-        when(mRemoteGenderBytes!![0]) {
+        when (mRemoteGenderBytes!![0]) {
             ADVERTISE_DATA_MALE -> mRemoteGenderView!!.setText(R.string.gender_male)
             ADVERTISE_DATA_FEMALE -> mRemoteGenderView!!.setText(R.string.gender_female)
         }
@@ -109,6 +118,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         mRemoteNicknameView!!.setText(R.string.no_data)
         mRemoteLocationView!!.setText(R.string.no_data)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ble_activity_result_detail)
@@ -132,6 +142,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         //set characteristics clicked listener
         mRemoteNicknameView!!.setOnClickListener(remoteNicknameClickedListener())
     }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gatt_services, menu)
         if (mConnected) {
@@ -143,6 +154,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         }
         return true
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_connect -> {
@@ -172,10 +184,12 @@ class BleResultDetailActivity : AppCompatActivity() {
             )
         }
     }
+
     override fun onPause() {
         super.onPause()
         unregisterReceiver(mGattUpdateReceiver)
     }
+
     override fun onDestroy() {
         super.onDestroy()
         unbindService(mServiceConnection)
@@ -185,6 +199,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     private fun updateConnectionState(resourceId: Int) {
         runOnUiThread { mConnectionState!!.setText(resourceId) }
     }
+
     /*
     // Iterate through the supported GATT Services/Characteristics.
     // Populate the data structure that is bound to the ExpandableListView
@@ -203,10 +218,10 @@ class BleResultDetailActivity : AppCompatActivity() {
             val currentServiceData = HashMap<String, String?>()
             uuid = gattService.uuid.toString()
             currentServiceData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownServiceString)
-            if(currentServiceData[LIST_NAME] == unknownServiceString) continue
+            if (currentServiceData[LIST_NAME] == unknownServiceString) continue
             currentServiceData[LIST_UUID] = uuid
             //check if already added
-            if(isAlreadyAdded(gattServiceData, uuid)) continue
+            if (isAlreadyAdded(gattServiceData, uuid)) continue
             gattServiceData.add(currentServiceData)
             val gattCharacteristicGroupData = ArrayList<HashMap<String, String?>>()
             val gattCharacteristics = gattService.characteristics
@@ -217,31 +232,42 @@ class BleResultDetailActivity : AppCompatActivity() {
                 val currentCharaData = HashMap<String, String?>()
                 uuid = gattCharacteristic.uuid.toString()
                 currentCharaData[LIST_NAME] = BleGattAttributes.lookup(uuid, unknownCharaString)
-                if(currentCharaData[LIST_NAME] == unknownCharaString) continue
+                if (currentCharaData[LIST_NAME] == unknownCharaString) continue
                 currentCharaData[LIST_UUID] = uuid
                 //check if already added
-                if(isAlreadyAdded(gattCharacteristicGroupData, uuid)) continue
+                if (isAlreadyAdded(gattCharacteristicGroupData, uuid)) continue
                 gattCharacteristicGroupData.add(currentCharaData)
-                if(BleGattAttributes.NICKNAME_CHAR == uuid) {
-                    //remote nickname char
-                    charRemoteNickname = gattCharacteristic
-                    //read characteristics from server
-                    readAndNotifyChars(gattCharacteristic)
+                when (uuid) {
+                    BleGattAttributes.NICKNAME_CHAR -> {
+                        //remote nickname char
+                        charRemoteNickname = gattCharacteristic
+                        //read characteristics from server
+                        readAndNotifyChars(gattCharacteristic)
+                    }
+                    BleGattAttributes.LOCATION_CHAR -> {
+                        //remote location char
+                        charRemoteLocation = gattCharacteristic
+                        //read characteristics from server
+                        readAndNotifyChars(gattCharacteristic)
+                    }
                 }
             }
             mGattCharacteristics!!.add(chars)
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
     }
+
     //check if already added
     private fun isAlreadyAdded(
-        lst: ArrayList<HashMap<String, String?>>?, item: String): Boolean {
+        lst: ArrayList<HashMap<String, String?>>?, item: String
+    ): Boolean {
         if (lst == null) return false
         lst.forEach {
             if (it[LIST_UUID] != null && it[LIST_UUID].equals(item)) return true
         }
         return false
     }
+
     /*
      we check 'Read' and 'Notify' features.
      See http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
@@ -267,9 +293,10 @@ class BleResultDetailActivity : AppCompatActivity() {
             )
         }
     }
+
     //characteristics clicked listener
     private fun remoteNicknameClickedListener() = View.OnClickListener {
-        if(charRemoteNickname != null) readAndNotifyChars(charRemoteNickname!!)
+        if (charRemoteNickname != null) readAndNotifyChars(charRemoteNickname!!)
     }
 
     companion object {

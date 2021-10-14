@@ -14,7 +14,8 @@ class BleGattAttributes {
         const val INFO_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"
         //characteristics
         const val NAME_CHAR = "00002a00-0000-1000-8000-00805f9b34fb"
-        const val NICKNAME_CHAR = "00002af7-0000-1000-8000-00805f9b34fb"
+        const val NICKNAME_CHAR = "00002af8-0000-1000-8000-00805f9b34fb"
+        const val LOCATION_CHAR = "00002af7-0000-1000-8000-00805f9b34fb"
         //val MANUFACTURER_NAME_STRING = "00002a29-0000-1000-8000-00805f9b34fb"
         //val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
         const val CLIENT_CHARACTERISTIC_NOTIFY = "00002902-0000-1000-8000-00805f9b34fb"
@@ -33,6 +34,7 @@ class BleGattAttributes {
                 //put(MANUFACTURER_NAME_STRING, "Manufacturer Name String")
                 put(NAME_CHAR, "Name Char")
                 put(NICKNAME_CHAR, "Nickname Char")
+                put(LOCATION_CHAR, "Location Char")
             }
         }
 
@@ -50,6 +52,13 @@ class BleGattAttributes {
 //            return field
             val nickname = BleHomeMainActivity.broadcastNickname
             return nickname.toByteArray()
+        }
+        /**
+         * Construct the field values for location characteristic
+         */
+        fun getLocationByteArray(): ByteArray {
+            val location = BleHomeMainActivity.broadcastLocation
+            return location.toByteArray()
         }
         /**
          * Return a configured [BluetoothGattService] instance for the
@@ -88,8 +97,15 @@ class BleGattAttributes {
                 //Read-only characteristic, supports notifications
                 BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ)
-
             service.addCharacteristic(nickNameCharacteristic)
+            // location characteristic
+            val locationCharacteristic = BluetoothGattCharacteristic(
+                UUID.fromString(LOCATION_CHAR),
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ)
+            service.addCharacteristic(locationCharacteristic)
+
             return service
         }
     }

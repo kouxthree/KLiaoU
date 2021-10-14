@@ -42,6 +42,11 @@ import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
+import android.widget.EditText
+
+import com.kliaou.MainActivity
+import com.kliaou.databinding.BleMainLocationBinding
+
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -80,6 +85,8 @@ class BleHomeMainActivity : AppCompatActivity() {
         createAdvertisement()
         //scanner
         createScanner()
+        //set my location edit dialog clicked listener
+        _binding.textMyLocation!!.setOnClickListener(myLocationClickedListener())
     }
 
     //start setting activity
@@ -90,6 +97,25 @@ class BleHomeMainActivity : AppCompatActivity() {
                 notifyRegisteredDevices()
             }
         }
+    //my location edit dialog clicked listener
+    private fun myLocationClickedListener() = View.OnClickListener {
+        val alert = AlertDialog.Builder(this)
+        val mBinding = BleMainLocationBinding.inflate(layoutInflater)
+        if(_binding.textMyLocation.text != getString(R.string.my_location)) {
+            mBinding.txtLocation.setText(_binding.textMyLocation.text)
+        }
+        alert.setView(mBinding.root.rootView)
+        val alertDialog = alert.create()
+        alertDialog.setCanceledOnTouchOutside(true)
+        mBinding.btnCancel.setOnClickListener {
+            alertDialog.dismiss()
+        }
+        mBinding.btnOkay.setOnClickListener {
+            _binding.textMyLocation.text = mBinding.txtLocation.text
+            alertDialog.dismiss()
+        }
+        alertDialog.show()
+    }
 
     //bluetooth
     private fun enableBluetooth() {
@@ -221,6 +247,7 @@ class BleHomeMainActivity : AppCompatActivity() {
             return
         }
         val nickname = BleGattAttributes.getNicknameByteArray()
+        val location = BleGattAttributes.getLocationByteArray()
         Log.i(TAG, "Sending update to ${registeredDevices.size} subscribers")
         for (device in registeredDevices) {
             val nicknameCharacteristic = bluetoothGattServer
@@ -228,6 +255,11 @@ class BleHomeMainActivity : AppCompatActivity() {
                 ?.getCharacteristic(UUID.fromString((BleGattAttributes.NICKNAME_CHAR)))
             nicknameCharacteristic?.value = nickname
             bluetoothGattServer?.notifyCharacteristicChanged(device, nicknameCharacteristic, false)
+            val locationCharacteristic = bluetoothGattServer
+                ?.getService(UUID.fromString(BleGattAttributes.INFO_SERVICE))
+                ?.getCharacteristic(UUID.fromString((BleGattAttributes.LOCATION_CHAR)))
+            locationCharacteristic?.value = nickname
+            bluetoothGattServer?.notifyCharacteristicChanged(device, locationCharacteristic, false)
         }
     }
     /**
@@ -268,6 +300,16 @@ class BleHomeMainActivity : AppCompatActivity() {
                         BluetoothGatt.GATT_SUCCESS,
                         0,
                         BleGattAttributes.getNicknameByteArray()
+                    )
+                }
+                UUID.fromString(BleGattAttributes.LOCATION_CHAR) -> {
+                    Log.i(TAG, "Read Location")
+                    bluetoothGattServer?.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        BleGattAttributes.getLocationByteArray()
                     )
                 }
                 else -> {
@@ -558,6 +600,7 @@ class BleHomeMainActivity : AppCompatActivity() {
     companion object {
         private val TAG = BleHomeMainActivity::class.java.simpleName
         var broadcastNickname: String = ""
+        var broadcastLocation: String = ""
         var broadcastNotifyFlag: Boolean = false
     }
 }
