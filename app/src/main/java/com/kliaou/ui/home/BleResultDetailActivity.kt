@@ -52,7 +52,6 @@ class BleResultDetailActivity : AppCompatActivity() {
             mBleGattClientService = null
         }
     }
-
     /*
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -80,6 +79,8 @@ class BleResultDetailActivity : AppCompatActivity() {
                     displayGattServices(mBleGattClientService?.getSupportedGattServices())
                 }
                 BleGattClientService.ACTION_DATA_AVAILABLE -> {
+                    //when server notified, this event always occurred.
+                    //but when connected, only first char available. -> seems time needed
                     displayGattCharInfo(intent)
                 }
             }
@@ -99,7 +100,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         }
         }
     }
-
     //display advertise service info
     private fun displayAdvertiseServiceInfo() {
         if (mRemoteGenderBytes == null) return
@@ -118,7 +118,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         mRemoteNicknameView!!.setText(R.string.no_data)
         mRemoteLocationView!!.setText(R.string.no_data)
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ble_activity_result_detail)
@@ -141,8 +140,8 @@ class BleResultDetailActivity : AppCompatActivity() {
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE)
         //set characteristics clicked listener
         mRemoteNicknameView!!.setOnClickListener(remoteNicknameClickedListener())
+        mRemoteLocationView!!.setOnClickListener(remoteLocationClickedListener())
     }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gatt_services, menu)
         if (mConnected) {
@@ -154,7 +153,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         }
         return true
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_connect -> {
@@ -172,7 +170,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
     override fun onResume() {
         super.onResume()
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
@@ -184,18 +181,15 @@ class BleResultDetailActivity : AppCompatActivity() {
             )
         }
     }
-
     override fun onPause() {
         super.onPause()
         unregisterReceiver(mGattUpdateReceiver)
     }
-
     override fun onDestroy() {
         super.onDestroy()
         unbindService(mServiceConnection)
         mBleGattClientService = null
     }
-
     private fun updateConnectionState(resourceId: Int) {
         runOnUiThread { mConnectionState!!.setText(resourceId) }
     }
@@ -256,7 +250,6 @@ class BleResultDetailActivity : AppCompatActivity() {
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
     }
-
     //check if already added
     private fun isAlreadyAdded(
         lst: ArrayList<HashMap<String, String?>>?, item: String
@@ -267,7 +260,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         }
         return false
     }
-
     /*
      we check 'Read' and 'Notify' features.
      See http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
@@ -293,10 +285,12 @@ class BleResultDetailActivity : AppCompatActivity() {
             )
         }
     }
-
-    //characteristics clicked listener
+    //remote characteristics clicked listener
     private fun remoteNicknameClickedListener() = View.OnClickListener {
         if (charRemoteNickname != null) readAndNotifyChars(charRemoteNickname!!)
+    }
+    private fun remoteLocationClickedListener() = View.OnClickListener {
+        if (charRemoteLocation != null) readAndNotifyChars(charRemoteLocation!!)
     }
 
     companion object {

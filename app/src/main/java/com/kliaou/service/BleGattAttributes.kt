@@ -3,6 +3,7 @@ package com.kliaou.service
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
+import com.kliaou.R
 import com.kliaou.ui.home.BleHomeMainActivity
 import java.util.*
 import kotlin.collections.HashMap

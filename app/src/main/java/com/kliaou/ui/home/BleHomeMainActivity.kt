@@ -55,9 +55,6 @@ import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import android.content.DialogInterface
 
-
-
-
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
     private lateinit var scanResultLinearLayoutManager: LinearLayoutManager
@@ -97,12 +94,19 @@ class BleHomeMainActivity : AppCompatActivity() {
         createScanner()
         //set my location edit dialog clicked listener
         _binding.textMyLocation!!.setOnClickListener(myLocationClickedListener())
-        //set my location changed listener//not used
-//        _binding.textMyLocation!!.addTextChangedListener(object:  TextWatcher{
-//            override fun afterTextChanged(p0: Editable?) {}
-//            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-//            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-//        })
+        //set my location changed listener
+        _binding.textMyLocation!!.addTextChangedListener(object:  TextWatcher{
+            override fun afterTextChanged(p0: Editable?) {
+                if(_binding.textMyLocation.text == getString(R.string.my_location)) {
+                    broadcastLocation = ""
+                } else {
+                    broadcastLocation = _binding.textMyLocation.text.toString()
+                }
+                notifyRegisteredDevices()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
     }
 
     //start setting activity
@@ -115,12 +119,12 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     //my location edit dialog clicked listener
     private fun myLocationClickedListener() = View.OnClickListener {
-        val strBeforeEdited = _binding.textMyLocation.text //string before edited
+//        val strBeforeEdited = _binding.textMyLocation.text //string before edited
         val alert = AlertDialog.Builder(this)
         val mBinding = BleMainLocationBinding.inflate(layoutInflater)
-        if(_binding.textMyLocation.text != getString(R.string.my_location)) {
+//        if(_binding.textMyLocation.text != getString(R.string.my_location)) {
             mBinding.txtLocation.setText(_binding.textMyLocation.text)
-        }
+//        }
         alert.setView(mBinding.root.rootView)
         val alertDialog = alert.create()
         alertDialog.setCanceledOnTouchOutside(true)
@@ -143,12 +147,12 @@ class BleHomeMainActivity : AppCompatActivity() {
             }
             handled
         }
-        //dialog dismiss listener
-        alertDialog.setOnDismissListener {
-            if(strBeforeEdited != _binding.textMyLocation.text) {
-                notifyRegisteredDevices()
-            }
-        }
+//        //dialog dismiss listener
+//        alertDialog.setOnDismissListener {
+//            if(strBeforeEdited != _binding.textMyLocation.text) {
+//                notifyRegisteredDevices()
+//            }
+//        }
         alertDialog.show()
     }
 
@@ -255,6 +259,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         bluetoothGattServer?.addService(BleGattAttributes.createInfoService())
             ?: Log.w(TAG, "Unable to create GATT info server")
         setBroadcastNickname()
+        setBroadcastLocation()
     }
     //set nickname for broadcasting
     private fun setBroadcastNickname() {
@@ -265,6 +270,10 @@ class BleHomeMainActivity : AppCompatActivity() {
         settingViewModel.mynickname.observe(this, {
             if (it != null && it.isNotEmpty()) broadcastNickname = it
         })
+    }
+    //set location for broadcasting
+    private fun setBroadcastLocation() {
+        broadcastLocation = _binding.textMyLocation.text.toString()
     }
     /**
      * Shut down the GATT server.
@@ -294,7 +303,7 @@ class BleHomeMainActivity : AppCompatActivity() {
             val locationCharacteristic = bluetoothGattServer
                 ?.getService(UUID.fromString(BleGattAttributes.INFO_SERVICE))
                 ?.getCharacteristic(UUID.fromString((BleGattAttributes.LOCATION_CHAR)))
-            locationCharacteristic?.value = nickname
+            locationCharacteristic?.value = location
             bluetoothGattServer?.notifyCharacteristicChanged(device, locationCharacteristic, false)
         }
     }
