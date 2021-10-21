@@ -39,8 +39,9 @@ class BleGattClientService: Service() {
         val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.NAME_CHAR)
     }
 
-    // Implements callback methods for GATT events that the app cares about.
-    // e.g. connection change and services discovered.
+    /* Implements callback methods for GATT events that the app cares about.
+       e.g. connection change and services discovered.
+     */
     private val mGattCallback: BluetoothGattCallback = object: BluetoothGattCallback() {
         override fun onConnectionStateChange(
             gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -189,6 +190,23 @@ class BleGattClientService: Service() {
         return true
     }
     /**
+     * Refresh remote info from GATT server hosted on the Bluetooth LE device.
+     *
+     * @return Return true if refreshing successfully.
+     */
+    fun refresh(): Boolean {
+        // get connected device.
+        if (mBluetoothDeviceAddress != null && mBluetoothGatt != null) {
+            Log.d(TAG, "Refreshing remote info from existing mBluetoothGatt.")
+        } else {
+            Log.d(TAG, "No connected mBluetoothGatt exists.")
+            return false
+        }
+        broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
+
+        return true
+    }
+    /**
      * Disconnects an existing connection or cancel a pending connection. The disconnection result
      * is reported asynchronously through the
      * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
@@ -220,7 +238,7 @@ class BleGattClientService: Service() {
      *
      * @param characteristic The characteristic to read from.
      */
-    fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
+    fun readCharacteristic(characteristic: BluetoothGattCharacteristic) /**/{
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return

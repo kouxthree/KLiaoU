@@ -17,5 +17,6 @@ const val SCAN_PERIOD_IN_MILLIS: Long = 90_000
 const val MY_IMG_FILE_NAME = "myimg"
 const val MY_NICKNAME_DEFAULT = "LiaoU User"
 val ADVERTISE_UUID = ParcelUuid.fromString("0000a81b-0000-1000-8000-00805f9b34fb")
-val ADVERTISE_DATA_MALE: Byte = 0x07
-val ADVERTISE_DATA_FEMALE: Byte = 0x08
+const val ADVERTISE_DATA_MALE: Byte = 0x07
+const val ADVERTISE_DATA_FEMALE: Byte = 0x08
+const val REMOTE_INFO_REFRESH_RATE = 3000L//1000 == one seconds

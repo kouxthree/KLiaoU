@@ -4,7 +4,9 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.content.*
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -14,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.ADVERTISE_DATA_FEMALE
 import com.kliaou.ADVERTISE_DATA_MALE
 import com.kliaou.R
+import com.kliaou.REMOTE_INFO_REFRESH_RATE
 import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattClientService
 import java.util.*
@@ -35,6 +38,15 @@ class BleResultDetailActivity : AppCompatActivity() {
     private val LIST_UUID = "UUID"
     private var charRemoteNickname: BluetoothGattCharacteristic? = null
     private var charRemoteLocation: BluetoothGattCharacteristic? = null
+    lateinit var remoteInfoRefreshHandler: Handler//for remote info refreshing
+
+    // refresh remote info continually
+    private val remoteInfoRefreshTask = object : Runnable {
+        override fun run() {
+            remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
+            mBleGattClientService?.refresh()
+        }
+    }
 
     // Code to manage Service lifecycle.
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
@@ -47,7 +59,6 @@ class BleResultDetailActivity : AppCompatActivity() {
             // Automatically connects to the device upon successful start-up initialization.
             mBleGattClientService!!.connect(mDeviceAddress)
         }
-
         override fun onServiceDisconnected(componentName: ComponentName) {
             mBleGattClientService = null
         }
@@ -67,12 +78,15 @@ class BleResultDetailActivity : AppCompatActivity() {
                     mConnected = true
                     updateConnectionState(R.string.connected)
                     invalidateOptionsMenu()
+                    remoteInfoRefreshHandler = Handler(Looper.getMainLooper())
+                    remoteInfoRefreshHandler.post(remoteInfoRefreshTask)
                 }
                 BleGattClientService.ACTION_GATT_DISCONNECTED -> {
                     mConnected = false
                     updateConnectionState(R.string.disconnected)
                     invalidateOptionsMenu()
                     clearUI()
+                    remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
                 }
                 BleGattClientService.ACTION_GATT_SERVICES_DISCOVERED -> {
                     // Show all the supported services and characteristics on the user interface.
@@ -159,6 +173,10 @@ class BleResultDetailActivity : AppCompatActivity() {
                 mBleGattClientService?.connect(mDeviceAddress)
                 return true
             }
+            R.id.menu_refresh -> {
+                mBleGattClientService?.refresh()
+                return true
+            }
             R.id.menu_disconnect -> {
                 mBleGattClientService?.disconnect()
                 return true
@@ -184,6 +202,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         unregisterReceiver(mGattUpdateReceiver)
+        remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
     }
     override fun onDestroy() {
         super.onDestroy()
