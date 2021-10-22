@@ -43,8 +43,8 @@ class BleResultDetailActivity : AppCompatActivity() {
     // refresh remote info continually
     private val remoteInfoRefreshTask = object : Runnable {
         override fun run() {
-            remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
             mBleGattClientService?.refresh()
+            remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
         }
     }
 
@@ -90,6 +90,10 @@ class BleResultDetailActivity : AppCompatActivity() {
                 }
                 BleGattClientService.ACTION_GATT_SERVICES_DISCOVERED -> {
                     // Show all the supported services and characteristics on the user interface.
+                    displayGattServices(mBleGattClientService?.getSupportedGattServices())
+                }
+                BleGattClientService.ACTION_GATT_SERVICES_REFRESH -> {
+                    // Refresh all the supported services and characteristics on the user interface.
                     displayGattServices(mBleGattClientService?.getSupportedGattServices())
                 }
                 BleGattClientService.ACTION_DATA_AVAILABLE -> {
@@ -322,6 +326,7 @@ class BleResultDetailActivity : AppCompatActivity() {
             intentFilter.addAction(BleGattClientService.ACTION_GATT_CONNECTED)
             intentFilter.addAction(BleGattClientService.ACTION_GATT_DISCONNECTED)
             intentFilter.addAction(BleGattClientService.ACTION_GATT_SERVICES_DISCOVERED)
+            intentFilter.addAction(BleGattClientService.ACTION_GATT_SERVICES_REFRESH)
             intentFilter.addAction(BleGattClientService.ACTION_DATA_AVAILABLE)
             return intentFilter
         }
