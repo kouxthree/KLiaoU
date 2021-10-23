@@ -54,6 +54,7 @@ import android.widget.TextView
 
 import android.widget.TextView.OnEditorActionListener
 import android.content.DialogInterface
+import android.view.inputmethod.InputMethodManager
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -99,6 +100,9 @@ class BleHomeMainActivity : AppCompatActivity() {
             override fun afterTextChanged(p0: Editable?) {
                 if(_binding.textMyLocation.text == getString(R.string.my_location)) {
                     broadcastLocation = ""
+                } else  if(_binding.textMyLocation.text.isNullOrBlank()) {
+                    _binding.textMyLocation.text = getString(R.string.my_location)
+                    broadcastLocation = ""
                 } else {
                     broadcastLocation = _binding.textMyLocation.text.toString()
                 }
@@ -119,12 +123,13 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     //my location edit dialog clicked listener
     private fun myLocationClickedListener() = View.OnClickListener {
+        val imm: InputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 //        val strBeforeEdited = _binding.textMyLocation.text //string before edited
         val alert = AlertDialog.Builder(this)
         val mBinding = BleMainLocationBinding.inflate(layoutInflater)
-//        if(_binding.textMyLocation.text != getString(R.string.my_location)) {
+        if(_binding.textMyLocation.text != getString(R.string.my_location)) {
             mBinding.txtLocation.setText(_binding.textMyLocation.text)
-//        }
+        }
         alert.setView(mBinding.root.rootView)
         val alertDialog = alert.create()
         alertDialog.setCanceledOnTouchOutside(true)
@@ -147,15 +152,20 @@ class BleHomeMainActivity : AppCompatActivity() {
             }
             handled
         }
-//        //dialog dismiss listener
-//        alertDialog.setOnDismissListener {
-//            if(strBeforeEdited != _binding.textMyLocation.text) {
-//                notifyRegisteredDevices()
+//        //focus changed listener
+//        mBinding.txtLocation.setOnFocusChangeListener { v, hasFocus ->
+//            if (hasFocus) {
+//                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+////                imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT)
 //            }
 //        }
+//        //dialog dismiss listener
+//        alertDialog.setOnDismissListener {
+//            imm.hideSoftInputFromWindow(_binding.textMyLocation.windowToken, 0)
+//        }
         alertDialog.show()
+//        mBinding.txtLocation.requestFocus()
     }
-
 
     //bluetooth
     private fun enableBluetooth() {

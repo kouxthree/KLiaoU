@@ -94,7 +94,8 @@ class BleResultDetailActivity : AppCompatActivity() {
                 }
                 BleGattClientService.ACTION_GATT_SERVICES_REFRESH -> {
                     // Refresh all the supported services and characteristics on the user interface.
-                    displayGattServices(mBleGattClientService?.getSupportedGattServices())
+//                    refreshRemoteNicknameCharDisp()
+                    refreshRemoteLocationCharDisp()
                 }
                 BleGattClientService.ACTION_DATA_AVAILABLE -> {
                     //when server notified, this event always occurred.
@@ -310,9 +311,16 @@ class BleResultDetailActivity : AppCompatActivity() {
     }
     //remote characteristics clicked listener
     private fun remoteNicknameClickedListener() = View.OnClickListener {
-        if (charRemoteNickname != null) readAndNotifyChars(charRemoteNickname!!)
+        refreshRemoteNicknameCharDisp()
     }
     private fun remoteLocationClickedListener() = View.OnClickListener {
+        refreshRemoteLocationCharDisp()
+    }
+    //refresh char display
+    private fun refreshRemoteNicknameCharDisp() {
+        if (charRemoteNickname != null) readAndNotifyChars(charRemoteNickname!!)
+    }
+    private fun refreshRemoteLocationCharDisp() {
         if (charRemoteLocation != null) readAndNotifyChars(charRemoteLocation!!)
     }
 
