@@ -9,9 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.R
 import com.kliaou.ui.home.HomeBindActivity
 import inflate
-import android.graphics.drawable.BitmapDrawable
-
-import android.graphics.Bitmap
 
 class RecyclerAdapter(private val recyclerItems: ArrayList<RecyclerItem>):
     RecyclerView.Adapter<RecyclerAdapter.ResultHolder>() {

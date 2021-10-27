@@ -24,7 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
-import com.kliaou.bleresult.BleRecyclerAdapter
+import com.kliaou.bleresult.BleScanRecyclerAdapter
 import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.datastore.proto.SEX
 import com.kliaou.service.BleAdvertiserService
@@ -41,24 +41,14 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
-import android.widget.EditText
-
-import com.kliaou.MainActivity
 import com.kliaou.databinding.BleMainLocationBinding
 import android.view.inputmethod.EditorInfo
-
-import android.widget.TextView
-
-import android.widget.TextView.OnEditorActionListener
-import android.content.DialogInterface
-import android.view.inputmethod.InputMethodManager
+import com.kliaou.bleresult.BleConnectRecyclerAdapter
+import com.kliaou.bleresult.BleRecyclerItem
 
 class BleHomeMainActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
-    private lateinit var scanResultLinearLayoutManager: LinearLayoutManager
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.ble_main_menu_setttings -> {
@@ -94,9 +84,9 @@ class BleHomeMainActivity : AppCompatActivity() {
         //scanner
         createScanner()
         //set my location edit dialog clicked listener
-        _binding.textMyLocation!!.setOnClickListener(myLocationClickedListener())
+        _binding.textMyLocation.setOnClickListener(myLocationClickedListener())
         //set my location changed listener
-        _binding.textMyLocation!!.addTextChangedListener(object:  TextWatcher{
+        _binding.textMyLocation.addTextChangedListener(object:  TextWatcher{
             override fun afterTextChanged(p0: Editable?) {
                 if(_binding.textMyLocation.text == getString(R.string.my_location)) {
                     broadcastLocation = ""
@@ -111,6 +101,8 @@ class BleHomeMainActivity : AppCompatActivity() {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
+        //connected device
+        createConnectDevice()
     }
 
     //start setting activity
@@ -123,7 +115,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         }
     //my location edit dialog clicked listener
     private fun myLocationClickedListener() = View.OnClickListener {
-        val imm: InputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+//        val imm: InputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 //        val strBeforeEdited = _binding.textMyLocation.text //string before edited
         val alert = AlertDialog.Builder(this)
         val mBinding = BleMainLocationBinding.inflate(layoutInflater)
@@ -169,7 +161,9 @@ class BleHomeMainActivity : AppCompatActivity() {
 
     //bluetooth
     private fun enableBluetooth() {
-        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
+        //init bluetooth manager
+        bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.getAdapter()
         //turn on bluetooth
         if (bluetoothAdapter?.isEnabled == true) {
             _binding.textServerInfo1.text = ""
@@ -197,8 +191,6 @@ class BleHomeMainActivity : AppCompatActivity() {
                 }
             startForResultTurnOnBt.launch(intentTurnOnBt)
         }
-        //init bluetooth manager
-        bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     }
 
     //advertisement
@@ -327,10 +319,14 @@ class BleHomeMainActivity : AppCompatActivity() {
                 Log.i(TAG, "BluetoothDevice CONNECTED: $device")
                 //add any device connected
                 registeredDevices.add(device)
+                //refresh connected devices area
+                addConnectDevice(device)
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "BluetoothDevice DISCONNECTED: $device")
                 //Remove device from any active subscriptions
                 registeredDevices.remove(device)
+                //refresh connected devices area
+                removeConnectDevice(device)
             }
         }
         override fun onCharacteristicReadRequest(
@@ -433,26 +429,52 @@ class BleHomeMainActivity : AppCompatActivity() {
             }
         }
     }
-
+    //connected devices area
+    private lateinit var bleConnectRecyclerAdapter: BleConnectRecyclerAdapter
+    private fun createConnectDevice() {
+        //connected devices list
+        val connectDeviceLinearLayoutManager = LinearLayoutManager(this)
+        _binding.listviewConnected.layoutManager = connectDeviceLinearLayoutManager
+        bleConnectRecyclerAdapter = BleConnectRecyclerAdapter()
+        _binding.listviewConnected.adapter = bleConnectRecyclerAdapter
+    }
+    private fun addConnectDevice(device: BluetoothDevice) {
+        val item = BleRecyclerItem(
+            Name = device.name,
+            Address = device.address,
+            Timestamp = System.currentTimeMillis()
+        )
+        Log.d(TAG, "add connect device: single")
+        bleConnectRecyclerAdapter.addSingleItem(item)
+    }
+    private fun removeConnectDevice(device: BluetoothDevice) {
+        val item = BleRecyclerItem(
+            Name = device.name,
+            Address = device.address,
+            Timestamp = System.currentTimeMillis()
+        )
+        Log.d(TAG, "remove connect device: single")
+        bleConnectRecyclerAdapter.removeSingleItem(item)
+    }
 
     //scan
-    private lateinit var bleRecyclerAdapter: BleRecyclerAdapter
+    private lateinit var bleScanRecyclerAdapter: BleScanRecyclerAdapter
     private var scanCallback: ScanCallback? = null
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     //private var handler: Handler? = null
     private fun createScanner() {
         //handler = Handler(Looper.myLooper()!!)
+        val scanResultLinearLayoutManager = LinearLayoutManager(this)
         if (bluetoothLeScanner == null) initBluetoothLeScanner()
         //scan result list
-        scanResultLinearLayoutManager = LinearLayoutManager(this)
         _binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
-        bleRecyclerAdapter = BleRecyclerAdapter()
-        _binding.listviewScanresult.adapter = bleRecyclerAdapter
+        bleScanRecyclerAdapter = BleScanRecyclerAdapter()
+        _binding.listviewScanresult.adapter = bleScanRecyclerAdapter
         //btn_search
         setBtnSearchBkColor(false)
         _binding.btnSearch.setOnClickListener {
             if (!getScanningState()) {
-                bleRecyclerAdapter.clearItems()
+                bleScanRecyclerAdapter.clearItems()
                 requestLocationPermission()
                 startScanning()
                 setBtnSearchBkColor(true)
@@ -487,7 +509,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         bluetoothLeScanner?.stopScan(scanCallback)
         scanCallback = null
         // update 'last seen' times even though there are no new results
-        bleRecyclerAdapter.notifyDataSetChanged()
+        bleScanRecyclerAdapter.notifyDataSetChanged()
     }
     private fun getScanningState(): Boolean {
         var isScanning = false
@@ -549,12 +571,12 @@ class BleHomeMainActivity : AppCompatActivity() {
         override fun onBatchScanResults(results: MutableList<ScanResult>?) {
             super.onBatchScanResults(results)
             Log.d(TAG, "onBatchScanResults size: ${results?.size}")
-            results?.let { bleRecyclerAdapter.setItems(it) }
+            results?.let { bleScanRecyclerAdapter.setItems(it) }
         }
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
             Log.d(TAG, "onScanResult: single")
-            bleRecyclerAdapter.addSingleItem(result)
+            bleScanRecyclerAdapter.addSingleItem(result)
         }
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)

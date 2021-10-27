@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature android:name="android.hardware.location.gps" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -60,6 +62,9 @@
             -->
         <activity
             android:name=".ui.home.BleResultDetailActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".ui.home.BleConnectDetailActivity"
             android:screenOrientation="portrait"></activity>
         <service
             android:name=".service.BleAdvertiserService"

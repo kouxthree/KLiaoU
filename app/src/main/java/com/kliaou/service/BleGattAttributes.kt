@@ -21,6 +21,8 @@ class BleGattAttributes {
         //val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
         const val CLIENT_CHARACTERISTIC_NOTIFY = "00002902-0000-1000-8000-00805f9b34fb"
         const val CLIENT_USER_DESCRIPTOR = "00002901-0000-1000-8000-00805f9b34fb"
+        //chat
+        const val CHAT_UUID = "fa87c0d0-afac-11de-8a39-0800200c9a66"
 
         private val attributes: HashMap<String, String> = object : HashMap<String, String>()
         {

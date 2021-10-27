@@ -14,6 +14,7 @@
     <string name="label_gender">Gender:</string>
     <string name="label_nickname">Nickname:</string>
     <string name="label_location">Location:</string>
+    <string name="label_device_name">Device name:</string>
     <string name="label_device_address">Device address:</string>
     <string name="label_state">State:</string>
     <string name="menu_refresh">Refresh</string>
@@ -46,5 +47,8 @@
     <string name="gender_female">女</string>
     <string name="gender_other1">不公开</string>
     <string name="gender_other2">不问</string>
+
+    <string name="chat_connect">打招呼</string>
+    <string name="chat_send_message">发信息</string>
 
 </resources>

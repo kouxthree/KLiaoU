@@ -1,7 +1,6 @@
 package com.kliaou.ui.home
 
 import androidx.lifecycle.*
-import com.kliaou.scanresult.RecyclerItem
 
 class HomeViewModel(private val state: SavedStateHandle): ViewModel() {
     private val _text = MutableLiveData<String>().apply {

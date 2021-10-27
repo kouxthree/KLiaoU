@@ -37,7 +37,7 @@ class BleGattClientService: Service() {
         const val ACTION_GATT_SERVICES_REFRESH = "com.kliaou.ACTION_GATT_SERVICES_REFRESH"
         const val EXTRA_CHAR_UUID = "com.kliaou.EXTRA_CHAR_UUID"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
-        val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.NAME_CHAR)
+        val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.CHAT_UUID)
     }
 
     /* Implements callback methods for GATT events that the app cares about.
