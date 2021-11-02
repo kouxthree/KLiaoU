@@ -457,6 +457,7 @@ class BleHomeMainActivity : AppCompatActivity() {
         bleConnectRecyclerAdapter.removeSingleItem(item)
     }
 
+
     //scan
     private lateinit var bleScanRecyclerAdapter: BleScanRecyclerAdapter
     private var scanCallback: ScanCallback? = null

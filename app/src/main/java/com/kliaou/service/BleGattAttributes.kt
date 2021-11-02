@@ -13,10 +13,13 @@ class BleGattAttributes {
         //service
         const val NAME_SERVICE = "00001800-0000-1000-8000-00805f9b34fb"
         const val INFO_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"
+        const val CHAT_SERVICE = "0000b81d-0000-1000-8000-00805f9b34fb"
         //characteristics
         const val NAME_CHAR = "00002a00-0000-1000-8000-00805f9b34fb"
         const val NICKNAME_CHAR = "00002af8-0000-1000-8000-00805f9b34fb"
         const val LOCATION_CHAR = "00002af7-0000-1000-8000-00805f9b34fb"
+        const val CHAT_MESSAGE_CHAR = "7db3e235-3608-41f3-a03c-955fcbd2ea4b"
+        const val CHAT_CONFIRM_CHAR = "36d4dc5c-814b-4097-a5a6-b93b39085928"
         //val MANUFACTURER_NAME_STRING = "00002a29-0000-1000-8000-00805f9b34fb"
         //val HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
         const val CLIENT_CHARACTERISTIC_NOTIFY = "00002902-0000-1000-8000-00805f9b34fb"
@@ -108,6 +111,31 @@ class BleGattAttributes {
                 BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ)
             service.addCharacteristic(locationCharacteristic)
+
+            return service
+        }
+        /**
+         * Function to create the Chat Service.
+         * GATT Server with the required characteristics and descriptors
+         */
+        fun createChatService(): BluetoothGattService {
+            // Setup gatt service
+            val service = BluetoothGattService(
+                UUID.fromString(CHAT_SERVICE),
+                BluetoothGattService.SERVICE_TYPE_PRIMARY)
+            // need to ensure that the property is writable and has the write permission
+            val messageCharacteristic = BluetoothGattCharacteristic(
+                UUID.fromString(CHAT_MESSAGE_CHAR),
+                BluetoothGattCharacteristic.PROPERTY_WRITE,
+                BluetoothGattCharacteristic.PERMISSION_WRITE
+            )
+            service.addCharacteristic(messageCharacteristic)
+            val confirmCharacteristic = BluetoothGattCharacteristic(
+                UUID.fromString(CHAT_CONFIRM_CHAR),
+                BluetoothGattCharacteristic.PROPERTY_WRITE,
+                BluetoothGattCharacteristic.PERMISSION_WRITE
+            )
+            service.addCharacteristic(confirmCharacteristic)
 
             return service
         }
