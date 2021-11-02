@@ -3,8 +3,7 @@ package com.kliaou.service
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
-import com.kliaou.R
-import com.kliaou.ui.home.BleHomeMainActivity
+import com.kliaou.ui.BleHomeActivity
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -56,14 +55,14 @@ class BleGattAttributes {
 //            val field = ByteArray(1)
 //            field[0] = (0x0c).toByte()
 //            return field
-            val nickname = BleHomeMainActivity.broadcastNickname
+            val nickname = BleHomeActivity.broadcastNickname
             return nickname.toByteArray()
         }
         /**
          * Construct the field values for location characteristic
          */
         fun getLocationByteArray(): ByteArray {
-            val location = BleHomeMainActivity.broadcastLocation
+            val location = BleHomeActivity.broadcastLocation
             return location.toByteArray()
         }
         /**

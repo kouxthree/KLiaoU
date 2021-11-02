@@ -10,9 +10,9 @@
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_main.xml" value="0.19641025641025642" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_main_ble.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_scanresult_detail.xml" value="0.2082051282051282" />
-        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_connect_detail.xml" value="0.1" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_connect_detail.xml" value="0.33" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_home_main.xml" value="0.1" />
-        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_result_detail.xml" value="0.1" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_result_detail.xml" value="0.33" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_scanresult_detail.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_gatt_characteristics.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_main_location.xml" value="0.3421875" />

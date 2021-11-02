@@ -13,8 +13,8 @@ import android.os.*
 import android.util.Log
 import com.kliaou.*
 import com.kliaou.datastore.proto.SEX
-import com.kliaou.ui.home.BleHomeMainActivity
-import com.kliaou.ui.home.mySexDataStore
+import com.kliaou.ui.BleHomeActivity
+import com.kliaou.ui.mySexDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -65,7 +65,7 @@ class BleAdvertiserService : Service() {
     private fun stopAdvertising() = bluetoothLeAdvertiser?.stopAdvertising(advertiseCallback)
         .also { bluetoothLeAdvertiser = null }
     private fun goForeground() {
-        val notificationIntent = Intent(this, BleHomeMainActivity::class.java)
+        val notificationIntent = Intent(this, BleHomeActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,0)
         val nBuilder = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {

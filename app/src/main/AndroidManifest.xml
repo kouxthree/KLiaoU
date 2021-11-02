@@ -22,26 +22,8 @@
         android:roundIcon="@drawable/launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.KLiaoU">
-        <!--
         <activity
-            android:name=".MainActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        -->
-        <activity
-            android:name=".ui.home.HomeMainActivity"
-            android:screenOrientation="portrait"></activity>
-        <activity
-            android:name=".ui.home.HomeBindActivity"
-            android:screenOrientation="portrait"></activity>
-
-        <activity
-            android:name=".ui.home.BleHomeMainActivity"
+            android:name=".ui.BleHomeActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name">
             <intent-filter>
@@ -50,21 +32,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.home.BleMainSettingActivity"
-            android:screenOrientation="portrait"></activity>
-        <!--
-        <activity
-            android:name=".ui.home.BleResultDetailActivity"
-            android:excludeFromRecents="true"
-            android:theme="@style/AppTheme.Dialog3"
-            android:label="Detail"
-            android:screenOrientation="portrait"></activity>
-            -->
-        <activity
-            android:name=".ui.home.BleResultDetailActivity"
+            android:name=".ui.BleHomeSettingActivity"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".ui.home.BleConnectDetailActivity"
+            android:name=".ui.BleResultDetailActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".ui.BleConnectDetailActivity"
             android:screenOrientation="portrait"></activity>
         <service
             android:name=".service.BleAdvertiserService"

@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.databinding.BleResultItemBinding
-import com.kliaou.ui.home.BleConnectDetailActivity
-import com.kliaou.ui.home.BleResultDetailActivity
+import com.kliaou.ui.BleConnectDetailActivity
+import com.kliaou.ui.BleResultDetailActivity
 
 class BleConnectRecyclerAdapter : RecyclerView.Adapter<BleConnectRecyclerAdapter.ResultHolder>() {
 

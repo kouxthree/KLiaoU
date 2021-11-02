@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.kliaou.ui.home.HomeBaseFragment"
+        android:name="com.kliaou.ui.ui.HomeBaseFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home_base" />
 
