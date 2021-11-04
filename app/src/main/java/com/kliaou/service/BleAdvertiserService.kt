@@ -9,19 +9,18 @@ import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.content.Intent
-import android.os.*
+import android.os.Build
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import com.kliaou.*
-import com.kliaou.datastore.proto.SEX
+import com.kliaou.db.Gender
+import com.kliaou.db.RepSetting
 import com.kliaou.ui.BleHomeActivity
-import com.kliaou.ui.mySexDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 
-class BleAdvertiserService : Service() {
+class BleAdvertiserService() : Service() {
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var advertiseCallback: AdvertiseCallback? = null
     private var handler: Handler? = null
@@ -92,19 +91,15 @@ class BleAdvertiserService : Service() {
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
         .setTimeout(0).build()
     private fun buildAdvertiseData(): AdvertiseData {
-        //read my gender from datastore
-        val mySexFlow: Flow<SEX>? =
-            applicationContext.mySexDataStore.data.map { settings ->
-                settings.sex
-            }
-        val mySex = runBlocking {
-            mySexFlow?.first()
-        }
+        //read my gender from db
+        val repsetting = RepSetting()
+        val myGender = repsetting.entitySetting?.myGender
+
         val data = AdvertiseData.Builder()
         data.addServiceUuid(ADVERTISE_UUID)
-        when(mySex) {
-            SEX.MALE -> data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE))
-            SEX.FEMALE -> data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_FEMALE))
+        when(myGender) {
+            Gender.MALE -> data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE))
+            Gender.FEMALE -> data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_FEMALE))
             else -> {
                 data.addServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE, ADVERTISE_DATA_FEMALE))
             }

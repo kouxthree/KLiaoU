@@ -10,14 +10,12 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.kliaou.MY_NICKNAME_DEFAULT
 import com.kliaou.databinding.BleHomeSettingBinding
-import com.kliaou.datastore.proto.MyChars
-import com.kliaou.datastore.proto.SEX
+import com.kliaou.db.Gender
 import kotlinx.coroutines.launch
 
 class BleHomeSettingActivity : AppCompatActivity() {
-    private lateinit var settingViewModel: BleMainSettingViewModel
+    private lateinit var settingViewModel: BleHomeSettingViewModel
     private var _binding: BleHomeSettingBinding? = null
     private val binding get() = _binding!!
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,42 +25,38 @@ class BleHomeSettingActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)//menu action
         settingViewModel = ViewModelProvider(
             this, SettingViewModelFactory(application)
-        )[BleMainSettingViewModel::class.java]
-        //read from datastore
+        )[BleHomeSettingViewModel::class.java]
+        //read from db
         settingViewModel.mynickname.observe(this, {
-            if(it == null || it.isEmpty()) {
-                binding.txtMyNickname.setText(MY_NICKNAME_DEFAULT)
-            } else {
-                binding.txtMyNickname.setText(it)
-            }
+            binding.txtMyNickname.setText(it)
         })
-        settingViewModel.mysex.observe(this, {
-            when(it) {
-                SEX.MALE -> {
-                    binding.rdbMySexMale.isChecked = true
+        settingViewModel.mygender.observe(this, {
+            when (it) {
+                Gender.MALE -> {
+                    binding.rdbMyGenderMale.isChecked = true
                 }
-                SEX.FEMALE -> {
-                    binding.rdbMySexFemale.isChecked = true
+                Gender.FEMALE -> {
+                    binding.rdbMyGenderFemale.isChecked = true
                 }
                 else -> {
-                    binding.rdbMySexOther.isChecked = true
+                    binding.rdbMyGenderOther.isChecked = true
                 }
             }
         })
-        settingViewModel.remotesex.observe(this, {
-            when(it) {
-                SEX.MALE -> {
-                    binding.rdbRemoteSexMale.isChecked = true
+        settingViewModel.remoteGender.observe(this, {
+            when (it) {
+                Gender.MALE -> {
+                    binding.rdbRemoteGenderMale.isChecked = true
                 }
-                SEX.FEMALE -> {
-                    binding.rdbRemoteSexFemale.isChecked = true
+                Gender.FEMALE -> {
+                    binding.rdbRemoteGenderFemale.isChecked = true
                 }
                 else -> {
-                    binding.rdbRemoteSexOther.isChecked = true
+                    binding.rdbRemoteGenderOther.isChecked = true
                 }
             }
         })
-        //write to datastore
+        //write to db
         binding.txtMyNickname.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable) {}
             override fun beforeTextChanged(
@@ -74,23 +68,23 @@ class BleHomeSettingActivity : AppCompatActivity() {
                 lifecycleScope.launch { storeMyNickname(s.toString()) }
             }
         })
-        binding.rdbMySexMale.setOnClickListener {
-            lifecycleScope.launch { storeMySex(SEX.MALE) }
+        binding.rdbMyGenderMale.setOnClickListener {
+            lifecycleScope.launch { storeMyGender(Gender.MALE) }
         }
-        binding.rdbMySexFemale.setOnClickListener {
-            lifecycleScope.launch { storeMySex(SEX.FEMALE) }
+        binding.rdbMyGenderFemale.setOnClickListener {
+            lifecycleScope.launch { storeMyGender(Gender.FEMALE) }
         }
-        binding.rdbMySexOther.setOnClickListener {
-            lifecycleScope.launch { storeMySex(SEX.OTHER) }
+        binding.rdbMyGenderOther.setOnClickListener {
+            lifecycleScope.launch { storeMyGender(Gender.OTHER) }
         }
-        binding.rdbRemoteSexMale.setOnClickListener {
-            lifecycleScope.launch { storeRemoteSex(SEX.MALE) }
+        binding.rdbRemoteGenderMale.setOnClickListener {
+            lifecycleScope.launch { storeRemoteGender(Gender.MALE) }
         }
-        binding.rdbRemoteSexFemale.setOnClickListener {
-            lifecycleScope.launch { storeRemoteSex(SEX.FEMALE) }
+        binding.rdbRemoteGenderFemale.setOnClickListener {
+            lifecycleScope.launch { storeRemoteGender(Gender.FEMALE) }
         }
-        binding.rdbRemoteSexOther.setOnClickListener{
-            lifecycleScope.launch { storeRemoteSex(SEX.OTHER) }
+        binding.rdbRemoteGenderOther.setOnClickListener{
+            lifecycleScope.launch { storeRemoteGender(Gender.OTHER) }
         }
         //init broadcast notify flag
         BleHomeActivity.broadcastNotifyFlag = false
@@ -109,39 +103,20 @@ class BleHomeSettingActivity : AppCompatActivity() {
         return true
     }
 
-    //write to data store
-    private suspend fun storeMyChars(mychars: MyChars) {
-        applicationContext.myCharsDataStore.updateData { currentSettings ->
-            currentSettings.toBuilder()
-                .setMynickname(mychars.mynickname)
-                .setMysex(mychars.mysex)
-                .setRemotesex(mychars.remotesex)
-                .build()
-        }
-    }
+    //write to db
     private suspend fun storeMyNickname(mynickname: String) {
-        applicationContext.myNicknameDataStore.updateData { currentSettings ->
-            currentSettings.toBuilder()
-                .setValue(mynickname)
-                .build()
-        }
+        settingViewModel.entitySetting?.nickName = mynickname
+        settingViewModel.updateCurrent(settingViewModel.entitySetting)
         //update broadcast nickname
         BleHomeActivity.broadcastNickname = mynickname
         BleHomeActivity.broadcastNotifyFlag = true
     }
-    private suspend fun storeMySex(sex: SEX) {
-        applicationContext.mySexDataStore.updateData { currentSettings ->
-            currentSettings.toBuilder()
-                .setSex(sex)
-                .build()
-        }
+    private suspend fun storeMyGender(mygender: Int) {
+        settingViewModel.entitySetting?.myGender = mygender
+        settingViewModel.updateCurrent(settingViewModel.entitySetting)
     }
-    private suspend fun storeRemoteSex(sex: SEX) {
-        applicationContext.remoteSexDataStore.updateData { currentSettings ->
-            currentSettings.toBuilder()
-                .setSex(sex)
-                .build()
-        }
+    private suspend fun storeRemoteGender(remotegender: Int) {
+        settingViewModel.entitySetting?.remoteGender = remotegender
+        settingViewModel.updateCurrent(settingViewModel.entitySetting)
     }
-
 }

@@ -1,75 +1,40 @@
 package com.kliaou.ui
 
-import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.*
-import com.kliaou.datastore.proto.MyChars
-import com.kliaou.datastore.proto.SEX
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
+import com.kliaou.db.EntitySetting
+import com.kliaou.db.RepSetting
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Suppress("UNCHECKED_CAST")
 class SettingViewModelFactory(private val application: Application):
     ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return BleMainSettingViewModel(
+        return BleHomeSettingViewModel(
             application
         ) as T
     }
 }
-class BleMainSettingViewModel(application: Application) : AndroidViewModel(application) {
-    @SuppressLint("StaticFieldLeak")
-    private val context = getApplication<Application>().applicationContext
-    companion  object {
-        const val PREFS_MY_CHARS_FN = "mychars.pb"
-        const val PREFS_MY_NICKNAME_FN = "mynickname.pb"
-        const val PREFS_MY_SEX_FN = "mysex.pb"
-        const val PREFS_REMOTE_SEX_FN = "remotesex.pb"
+class BleHomeSettingViewModel(application: Application) : AndroidViewModel(application) {
+    val repsetting = RepSetting()
+    var entitySetting = repsetting.entitySetting!!
+    suspend fun updateCurrent(entitySetting: EntitySetting?) {
+        repsetting.updateCurrent(entitySetting)
     }
-
-    private val _mychars = MutableLiveData<MyChars>().apply {
-        val myCharsFlow: Flow<MyChars> =
-            context.myCharsDataStore.data.map { settings ->
-                settings
-            }
-        value = runBlocking {
-            myCharsFlow.first()
-        }
-    }
-    val mychars: LiveData<MyChars> = _mychars
 
     private val _mynickname = MutableLiveData<String>().apply {
-        val myNicknameFlow: Flow<String> =
-            context.myNicknameDataStore.data.map { settings ->
-                settings.value
-            }
-        value = runBlocking {
-            myNicknameFlow.first()
-        }
+        value = entitySetting.nickName
     }
     val mynickname: LiveData<String> = _mynickname
 
-    private val _mysex = MutableLiveData<SEX>().apply {
-        val mySexFlow: Flow<SEX> =
-            context.mySexDataStore.data.map { settings ->
-                settings.sex
-            }
-        value = runBlocking {
-            mySexFlow.first()
-        }
+    private val _mygender = MutableLiveData<Int>().apply {
+        value = entitySetting.myGender
     }
-    val mysex: LiveData<SEX> = _mysex
+    val mygender: LiveData<Int> = _mygender
 
-    private val _remotesex = MutableLiveData<SEX>().apply {
-        val remoteSexFlow: Flow<SEX> =
-            context.remoteSexDataStore.data.map { settings ->
-                settings.sex
-            }
-        value = runBlocking {
-            remoteSexFlow.first()
-        }
+    private val _remoteGender = MutableLiveData<Int>().apply {
+        value = entitySetting.remoteGender
     }
-    val remotesex: LiveData<SEX> = _remotesex
+    val remoteGender: LiveData<Int> = _remoteGender
 }

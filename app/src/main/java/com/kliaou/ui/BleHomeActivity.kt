@@ -2,6 +2,7 @@ package com.kliaou.ui
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.BroadcastReceiver
@@ -11,8 +12,16 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.location.LocationManager
+import android.os.Bundle
+import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
@@ -24,28 +33,17 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
-import com.kliaou.bleresult.BleScanRecyclerAdapter
-import com.kliaou.databinding.BleActivityHomeMainBinding
-import com.kliaou.datastore.proto.SEX
-import com.kliaou.service.BleAdvertiserService
-import com.kliaou.service.BleGattAttributes
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
-import java.util.*
-import kotlin.collections.ArrayList
-import android.location.LocationManager
-import android.app.AlertDialog
-import android.os.Bundle
-import android.provider.Settings
-import android.text.Editable
-import android.text.TextWatcher
-import androidx.lifecycle.ViewModelProvider
-import android.view.inputmethod.EditorInfo
 import com.kliaou.bleresult.BleConnectRecyclerAdapter
 import com.kliaou.bleresult.BleRecyclerItem
+import com.kliaou.bleresult.BleScanRecyclerAdapter
+import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.databinding.BleHomeLocationBinding
+import com.kliaou.db.Gender
+import com.kliaou.db.RepSetting
+import com.kliaou.service.BleAdvertiserService
+import com.kliaou.service.BleGattAttributes
+import java.util.*
+import kotlin.collections.ArrayList
 
 class BleHomeActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityHomeMainBinding
@@ -265,13 +263,9 @@ class BleHomeActivity : AppCompatActivity() {
     }
     //set nickname for broadcasting
     private fun setBroadcastNickname() {
-        //read from datastore
-        val settingViewModel = ViewModelProvider(
-            this, SettingViewModelFactory(application)
-        )[BleMainSettingViewModel::class.java]
-        settingViewModel.mynickname.observe(this, {
-            if (it != null && it.isNotEmpty()) broadcastNickname = it
-        })
+        //read from db
+        val repsetting = RepSetting()
+        broadcastNickname = repsetting.entitySetting?.nickName.toString()
     }
     //set location for broadcasting
     private fun setBroadcastLocation() {
@@ -534,15 +528,10 @@ class BleHomeActivity : AppCompatActivity() {
         }
     }
     private fun buildScanFilters(): List<ScanFilter> {
-        //read remote gender from datastore
-        val remoteSexFlow: Flow<SEX> =
-            applicationContext.remoteSexDataStore.data.map { settings ->
-                settings.sex
-            }
-        val remoteSex = runBlocking {
-            remoteSexFlow.first()
-        }
-        //male filter
+        //read remote gender from db
+        val repsetting = RepSetting()
+        val remoteGender = repsetting.entitySetting?.remoteGender
+         //male filter
         val filter1 = ScanFilter.Builder()
         filter1.setServiceUuid(ADVERTISE_UUID)
             .setServiceData(ADVERTISE_UUID, byteArrayOf(ADVERTISE_DATA_MALE))
@@ -557,9 +546,9 @@ class BleHomeActivity : AppCompatActivity() {
         //return listOf(scanFilter)
         val lst = ArrayList<ScanFilter>()
         lst.add(filter3.build())//always scan either
-        when(remoteSex) {
-            SEX.MALE -> lst.add(filter1.build())
-            SEX.FEMALE -> lst.add(filter2.build())
+        when(remoteGender) {
+            Gender.MALE -> lst.add(filter1.build())
+            Gender.FEMALE -> lst.add(filter2.build())
             else -> {
                 lst.add(filter1.build())
                 lst.add(filter2.build())

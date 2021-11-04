@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.setting.SettingFragment">
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -42,21 +41,21 @@
                 android:layout_height="10dp"/>
 
             <TextView
-                android:id="@+id/my_sex"
+                android:id="@+id/my_gender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/my_gender"
                 android:textSize="16sp"
                 android:textStyle="bold" />
             <RadioGroup
-                android:id="@+id/rdMySex"
+                android:id="@+id/rdMyGender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingBottom="20dp">
 
                 <RadioButton
-                    android:id="@+id/rdbMySexMale"
+                    android:id="@+id/rdbMyGenderMale"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
@@ -65,7 +64,7 @@
                     android:textSize="20sp" />
 
                 <RadioButton
-                    android:id="@+id/rdbMySexFemale"
+                    android:id="@+id/rdbMyGenderFemale"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
@@ -74,7 +73,7 @@
                     android:textSize="20sp" />
 
                 <RadioButton
-                    android:id="@+id/rdbMySexOther"
+                    android:id="@+id/rdbMyGenderOther"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
@@ -84,21 +83,21 @@
             </RadioGroup>
 
             <TextView
-                android:id="@+id/remote_sex"
+                android:id="@+id/remote_gender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/search_gender"
                 android:textSize="16sp"
                 android:textStyle="bold" />
             <RadioGroup
-                android:id="@+id/rdRemoteSex"
+                android:id="@+id/rdRemoteGender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingBottom="20dp">
 
                 <RadioButton
-                    android:id="@+id/rdbRemoteSexMale"
+                    android:id="@+id/rdbRemoteGenderMale"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
@@ -107,7 +106,7 @@
                     android:textSize="20sp" />
 
                 <RadioButton
-                    android:id="@+id/rdbRemoteSexFemale"
+                    android:id="@+id/rdbRemoteGenderFemale"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
@@ -116,7 +115,7 @@
                     android:textSize="20sp" />
 
                 <RadioButton
-                    android:id="@+id/rdbRemoteSexOther"
+                    android:id="@+id/rdbRemoteGenderOther"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="30dp"
