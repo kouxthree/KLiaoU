@@ -33,9 +33,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
-import com.kliaou.bleresult.BleConnectRecyclerAdapter
-import com.kliaou.bleresult.BleRecyclerItem
-import com.kliaou.bleresult.BleScanRecyclerAdapter
+import com.kliaou.blerecycler.BleConnectRecyclerAdapter
+import com.kliaou.blerecycler.BleRecyclerItem
+import com.kliaou.blerecycler.BleScanRecyclerAdapter
 import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.databinding.BleHomeLocationBinding
 import com.kliaou.db.Gender

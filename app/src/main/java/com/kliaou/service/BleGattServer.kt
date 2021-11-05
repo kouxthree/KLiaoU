@@ -6,11 +6,10 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.kliaou.bleresult.BleRecyclerItem
 import java.util.*
 
 private const val TAG = "BleGattService"
-object BleGattService {
+object BleGattServer {
 
     // hold reference to app context to run the chat server
     private var app: Application? = null

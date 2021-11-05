@@ -13,10 +13,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
+import com.kliaou.blerecycler.ChatMessageAdapter
 import com.kliaou.databinding.BleActivityConnectDetailBinding
 import com.kliaou.service.BleGattAttributes
+import com.kliaou.service.BleGattServer
+import com.kliaou.service.BleMessage
+import androidx.lifecycle.Observer
 import java.io.IOException
-import java.util.*
+import java.util.UUID
 
 class BleConnectDetailActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityConnectDetailBinding
@@ -39,6 +43,7 @@ class BleConnectDetailActivity : AppCompatActivity() {
         //chat area view
         createChatView()
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -51,31 +56,27 @@ class BleConnectDetailActivity : AppCompatActivity() {
 
     //chat view
     private lateinit var bluetoothAdapter: BluetoothAdapter
-    private lateinit var remoteDevice: BluetoothDevice
+    private val chatMessageAdapter = ChatMessageAdapter()
+    private val chatMessageObserver = Observer<BleMessage> { message ->
+        Log.d(TAG, "Have message ${message.text}")
+        chatMessageAdapter.addMessage(message)
+    }
     private fun createChatView() {
         //init bluetooth manager
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.getAdapter()
-        //connect btn listener
-        _binding.btnConnect.setOnClickListener {
-            try {
-                remoteDevice = bluetoothAdapter?.getRemoteDevice(mDeviceAddress)!!
-                if (bluetoothAdapter.isDiscovering == true) {
-                    bluetoothAdapter.cancelDiscovery()
-                }
-            } catch (e: IOException) {
-                val msg = "Could not get remote device"
-                Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG).show()
-                Log.e(ContentValues.TAG, msg, e)
-            }
-        }
         //send message listener
         _binding.btnSendMsg.setOnClickListener {
-//            //not connected
-//            if(!checkConnectState()) return@setOnClickListener
-//            //send message
-//            chatSendMessage(_binding.txtOut.text.toString())
+            val message = _binding.txtChatMessage.text.toString()
+            // only send message if it is not empty
+            if (message.isNotEmpty()) {
+                BleGattServer.sendMessage(message)
+                // clear message
+                _binding.txtChatMessage.setText("")
+            }
         }
+        //set message observer
+        BleGattServer.messages.observe(this, chatMessageObserver)
     }
 
     companion object {

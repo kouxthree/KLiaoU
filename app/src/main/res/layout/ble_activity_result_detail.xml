@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.ui.HomeBaseFragment">
+    tools:context=".ui.BleResultDetailActivity">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_1"
@@ -130,7 +130,7 @@
         app:layout_constraintTop_toTopOf="@+id/guideline_h_1">
 
         <EditText
-            android:id="@+id/txt_out"
+            android:id="@+id/txt_chat_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/chat_send_message"
@@ -142,22 +142,16 @@
             android:layout_height="wrap_content"
             android:text="@string/chat_send_message" />
 
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/txt_conversation"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:id="@+id/txt_conversation"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:ems="10"
-                android:gravity="start|top"
-                android:inputType="textMultiLine"
-                android:text="TextIn"
-                android:textSize="24sp"
-                tools:ignore="TouchTargetSizeCheck" />
-        </ScrollView>
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:scrollbars="vertical"
+            android:layout_weight="1"/>
 
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

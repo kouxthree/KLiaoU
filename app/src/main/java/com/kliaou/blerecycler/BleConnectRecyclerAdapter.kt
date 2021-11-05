@@ -1,4 +1,4 @@
-package com.kliaou.bleresult
+package com.kliaou.blerecycler
 
 import android.content.Intent
 import android.util.Log
@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.kliaou.databinding.BleResultItemBinding
+import com.kliaou.databinding.BleDeviceItemBinding
 import com.kliaou.ui.BleConnectDetailActivity
 import com.kliaou.ui.BleResultDetailActivity
 
@@ -46,7 +46,7 @@ class BleConnectRecyclerAdapter : RecyclerView.Adapter<BleConnectRecyclerAdapter
     private fun getItem(position: Int): BleRecyclerItem? = if (itemsList.isEmpty()) null else itemsList[position]
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultHolder {
-        val binding = BleResultItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = BleDeviceItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ResultHolder(binding)
     }
 
@@ -55,7 +55,7 @@ class BleConnectRecyclerAdapter : RecyclerView.Adapter<BleConnectRecyclerAdapter
         holder.bind(getItem(position))
     }
 
-    inner class ResultHolder(private val binding: BleResultItemBinding) :
+    inner class ResultHolder(private val binding: BleDeviceItemBinding) :
         RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
         private var _connectResult: BleRecyclerItem? = null

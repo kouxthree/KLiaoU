@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.ui.HomeBaseFragment">
+    tools:context=".ui.BleHomeActivity">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_1"
@@ -106,14 +106,12 @@
             android:id="@+id/text_server_info1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
-            android:textSize="20sp" />
+             android:textSize="20sp" />
 
         <TextView
             android:id="@+id/text_server_info2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
             android:textSize="20sp" />
 
     </LinearLayout>

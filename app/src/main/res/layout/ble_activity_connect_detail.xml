@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.ui.HomeBaseFragment">
+    tools:context=".ui.BleConnectDetailActivity">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_1"
@@ -74,14 +74,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_1">
 
-        <Button
-            android:id="@+id/btn_connect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/chat_connect" />
-
         <EditText
-            android:id="@+id/txt_out"
+            android:id="@+id/txt_chat_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/chat_send_message"
@@ -93,11 +87,7 @@
             android:layout_height="wrap_content"
             android:text="@string/chat_send_message" />
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
+        <!-- androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/txt_conversation"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -106,9 +96,17 @@
                 android:inputType="textMultiLine"
                 android:text="TextIn"
                 android:textSize="24sp"
-                tools:ignore="TouchTargetSizeCheck" />
-        </ScrollView>
+                tools:ignore="TouchTargetSizeCheck" / -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/txt_conversation"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:scrollbars="vertical"
+            android:layout_weight="1"/>
 
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

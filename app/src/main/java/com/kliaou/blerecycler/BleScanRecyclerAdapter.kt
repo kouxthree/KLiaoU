@@ -1,4 +1,4 @@
-package com.kliaou.bleresult
+package com.kliaou.blerecycler
 
 import android.bluetooth.le.ScanResult
 import android.content.Intent
@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.ADVERTISE_UUID
-import com.kliaou.databinding.BleResultItemBinding
+import com.kliaou.databinding.BleDeviceItemBinding
 import com.kliaou.ui.BleResultDetailActivity
 
 class BleScanRecyclerAdapter : RecyclerView.Adapter<BleScanRecyclerAdapter.ResultHolder>() {
@@ -40,7 +40,7 @@ class BleScanRecyclerAdapter : RecyclerView.Adapter<BleScanRecyclerAdapter.Resul
     private fun getItem(position: Int): ScanResult? = if (itemsList.isEmpty()) null else itemsList[position]
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultHolder {
-        val binding = BleResultItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = BleDeviceItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ResultHolder(binding)
     }
 
@@ -49,7 +49,7 @@ class BleScanRecyclerAdapter : RecyclerView.Adapter<BleScanRecyclerAdapter.Resul
         holder.bind(getItem(position))
     }
 
-    inner class ResultHolder(private val binding: BleResultItemBinding) :
+    inner class ResultHolder(private val binding: BleDeviceItemBinding) :
         RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
         private var _scanResult: ScanResult? = null
