@@ -6,6 +6,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.kliaou.MainApplication
 import com.kliaou.db.RepSetting
 import com.kliaou.ui.BleHomeActivity
 import java.util.*
@@ -13,14 +14,12 @@ import java.util.*
 private const val TAG = "BleGattService"
 object BleGattServer {
 
-    // hold reference to app context to run the chat server
-    private var app: Application? = null
     //gatt server
     private lateinit var bluetoothManager: BluetoothManager
     private var bluetoothGattServer: BluetoothGattServer? = null
     /* Collection of notification subscribers */
     private val _registeredDevices = mutableSetOf<BluetoothDevice>()
-    val registeredDevices = _registeredDevices as LiveData<MutableSet<BluetoothDevice>>
+    //val registeredDevices = _registeredDevices as LiveData<MutableSet<BluetoothDevice>>
     // LiveData for reporting the messages sent to the device
     private val _messages = MutableLiveData<BleMessage>()
     val messages = _messages as LiveData<BleMessage>
@@ -35,9 +34,9 @@ object BleGattServer {
      */
     fun startGattServer() {
         //init bluetooth manager
-        bluetoothManager = app?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothManager = MainApplication.app().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         //gatt server
-        bluetoothGattServer = bluetoothManager.openGattServer(app, gattServerCallback)
+        bluetoothGattServer = bluetoothManager.openGattServer(MainApplication.app(), gattServerCallback)
         //name service
         bluetoothGattServer?.addService(BleGattAttributes.createNameService())
             ?: Log.w(TAG, "Unable to create GATT name server")

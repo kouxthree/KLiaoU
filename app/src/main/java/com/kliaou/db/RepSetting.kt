@@ -18,7 +18,7 @@ class RepSetting() {
         return withContext(Dispatchers.IO) { daoSetting.insertAll(entitySetting!!) }
     }
     private suspend fun getCurrent(): EntitySetting? {
-        var entitySetting = withContext(Dispatchers.IO) {
+        entitySetting = withContext(Dispatchers.IO) {
             daoSetting.getFirst()
         }
         if(entitySetting == null) insertDefault()

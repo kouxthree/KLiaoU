@@ -30,7 +30,6 @@ class BleResultDetailActivity : AppCompatActivity() {
     private var mRemoteNicknameView: TextView? = null
     private var mRemoteLocationView: TextView? = null
     private var mChatMessageView: TextView? = null
-    private var mConversionView: TextView? = null
     private var mSendMsgBtnView: Button? = null
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
@@ -125,11 +124,7 @@ class BleResultDetailActivity : AppCompatActivity() {
             }
             BleGattAttributes.CHAT_MESSAGE_CHAR -> {
                 val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
-                val sb = StringBuilder()
-                sb.append(mConversionView!!.text)
-                    .append(System.lineSeparator())
-                    .append(data)
-                mConversionView!!.text = sb.toString()
+
             }
         }
     }
@@ -150,7 +145,6 @@ class BleResultDetailActivity : AppCompatActivity() {
 //        mRemoteGenderView!!.setText(R.string.no_data)
         mRemoteNicknameView!!.setText(R.string.no_data)
         mRemoteLocationView!!.setText(R.string.no_data)
-        mConversionView!!.setText("")
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,7 +162,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         mRemoteNicknameView = findViewById<View>(R.id.remote_nickname) as TextView
         mRemoteLocationView = findViewById<View>(R.id.remote_location) as TextView
         mChatMessageView = findViewById<View>(R.id.txt_chat_message) as TextView
-        mConversionView = findViewById<View>(R.id.txt_conversation) as TextView
         mSendMsgBtnView = findViewById<View>(R.id.btn_send_msg) as Button
         supportActionBar?.title = mDeviceName
         displayAdvertiseServiceInfo()

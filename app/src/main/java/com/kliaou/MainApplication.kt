@@ -12,5 +12,8 @@ class MainApplication : Application() {
         fun appContext(): Context {
             return instance!!.applicationContext
         }
+        fun app(): MainApplication {
+            return instance!!
+        }
     }
 }

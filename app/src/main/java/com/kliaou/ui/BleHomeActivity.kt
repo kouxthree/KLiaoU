@@ -245,7 +245,6 @@ class BleHomeActivity : AppCompatActivity() {
     private fun createServiceIntent(): Intent =
         Intent(applicationContext, BleAdvertiserService::class.java)
 
-
     //gatt server/callers to BleGattServer
     /* Collection of notification subscribers */
     private val registeredDevices = mutableSetOf<BluetoothDevice>()
@@ -308,7 +307,6 @@ class BleHomeActivity : AppCompatActivity() {
         Log.d(TAG, "remove connect device: single")
         bleConnectRecyclerAdapter.removeSingleItem(item)
     }
-
 
     //scan
     private lateinit var bleScanRecyclerAdapter: BleScanRecyclerAdapter
