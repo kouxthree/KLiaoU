@@ -43,13 +43,13 @@ class BleResultDetailActivity : AppCompatActivity() {
     private val LIST_UUID = "UUID"
     private var charRemoteNickname: BluetoothGattCharacteristic? = null
     private var charRemoteLocation: BluetoothGattCharacteristic? = null
-    lateinit var remoteInfoRefreshHandler: Handler//for remote info refreshing
+//    lateinit var remoteInfoRefreshHandler: Handler//for remote info refreshing
 
     // refresh remote info continually
     private val remoteInfoRefreshTask = object : Runnable {
         override fun run() {
             mBleGattClientService?.refresh()
-            remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
+//            if(remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
         }
     }
 
@@ -83,15 +83,15 @@ class BleResultDetailActivity : AppCompatActivity() {
                     mConnected = true
                     updateConnectionState(R.string.connected)
                     invalidateOptionsMenu()
-                    remoteInfoRefreshHandler = Handler(Looper.getMainLooper())
-                    remoteInfoRefreshHandler.post(remoteInfoRefreshTask)
+//                    remoteInfoRefreshHandler = Handler(Looper.getMainLooper())
+//                    if(remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.post(remoteInfoRefreshTask)
                 }
                 BleGattClientService.ACTION_GATT_DISCONNECTED -> {
                     mConnected = false
                     updateConnectionState(R.string.disconnected)
                     invalidateOptionsMenu()
                     clearUI()
-                    remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
+//                    if(remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
                 }
                 BleGattClientService.ACTION_GATT_SERVICES_DISCOVERED -> {
                     // Show all the supported services and characteristics on the user interface.
@@ -220,7 +220,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         unregisterReceiver(mGattUpdateReceiver)
-        remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
+//        if(remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -347,7 +347,7 @@ class BleResultDetailActivity : AppCompatActivity() {
     private fun createChatView() {
         //init bluetooth manager
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothAdapter = bluetoothManager.getAdapter()
+        bluetoothAdapter = bluetoothManager.adapter
         //send message listener
         mSendMsgBtnView!!.setOnClickListener {
             val message = mChatMessageView!!.text.toString()
@@ -355,7 +355,7 @@ class BleResultDetailActivity : AppCompatActivity() {
             if (message.isNotEmpty()) {
                 BleGattServer.sendMessage(message)
                 // clear message
-                mChatMessageView!!.setText("")
+                mChatMessageView!!.text = ""
             }
         }
         //set message observer

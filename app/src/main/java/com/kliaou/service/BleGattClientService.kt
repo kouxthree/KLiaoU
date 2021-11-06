@@ -37,7 +37,7 @@ class BleGattClientService: Service() {
         const val ACTION_GATT_SERVICES_REFRESH = "com.kliaou.ACTION_GATT_SERVICES_REFRESH"
         const val EXTRA_CHAR_UUID = "com.kliaou.EXTRA_CHAR_UUID"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
-        val UUID_NAME_CHAR: UUID = UUID.fromString(BleGattAttributes.CHAT_UUID)
+        val UUID_CHAT_CHAR: UUID = UUID.fromString(BleGattAttributes.CHAT_UUID)
     }
 
     /* Implements callback methods for GATT events that the app cares about.
@@ -260,7 +260,7 @@ class BleGattClientService: Service() {
         }
         mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
         // when client config evoked
-        if (UUID_NAME_CHAR == characteristic.uuid && characteristic.descriptors.size > 0) {
+        if (UUID_CHAT_CHAR == characteristic.uuid && characteristic.descriptors.size > 0) {
             val descriptor: BluetoothGattDescriptor = characteristic
                 .getDescriptor(UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_NOTIFY))
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
