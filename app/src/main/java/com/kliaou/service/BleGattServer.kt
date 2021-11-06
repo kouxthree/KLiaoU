@@ -6,6 +6,8 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.kliaou.db.RepSetting
+import com.kliaou.ui.BleHomeActivity
 import java.util.*
 
 private const val TAG = "BleGattService"

@@ -42,6 +42,7 @@ import com.kliaou.db.Gender
 import com.kliaou.db.RepSetting
 import com.kliaou.service.BleAdvertiserService
 import com.kliaou.service.BleGattAttributes
+import com.kliaou.service.BleGattServer
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -158,6 +159,7 @@ class BleHomeActivity : AppCompatActivity() {
     }
 
     //bluetooth
+    private lateinit var bluetoothManager: BluetoothManager
     private fun enableBluetooth() {
         //init bluetooth manager
         bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -244,20 +246,14 @@ class BleHomeActivity : AppCompatActivity() {
         Intent(applicationContext, BleAdvertiserService::class.java)
 
 
-    //gatt server
-    private lateinit var bluetoothManager: BluetoothManager
-    private var bluetoothGattServer: BluetoothGattServer? = null
+    //gatt server/callers to BleGattServer
     /* Collection of notification subscribers */
     private val registeredDevices = mutableSetOf<BluetoothDevice>()
     /**
      * Initialize the GATT server instance with the services/characteristics
      */
     private fun startGattServer() {
-        bluetoothGattServer = bluetoothManager.openGattServer(this, gattServerCallback)
-        bluetoothGattServer?.addService(BleGattAttributes.createNameService())
-            ?: Log.w(TAG, "Unable to create GATT name server")
-        bluetoothGattServer?.addService(BleGattAttributes.createInfoService())
-            ?: Log.w(TAG, "Unable to create GATT info server")
+        BleGattServer.startGattServer()
         setBroadcastNickname()
         setBroadcastLocation()
     }
@@ -275,7 +271,7 @@ class BleHomeActivity : AppCompatActivity() {
      * Shut down the GATT server.
      */
     private fun stopGattServer() {
-        bluetoothGattServer?.close()
+        BleGattServer.stopGattServer()
     }
     /**
      * Send a service notification to any devices that are subscribed
@@ -283,145 +279,7 @@ class BleHomeActivity : AppCompatActivity() {
      */
     //private fun notifyRegisteredDevices(timestamp: Long, adjustReason: Byte) {
     private fun notifyRegisteredDevices() {
-        if (registeredDevices.isEmpty()) {
-            Log.i(TAG, "No subscribers registered")
-            return
-        }
-        val nickname = BleGattAttributes.getNicknameByteArray()
-        val location = BleGattAttributes.getLocationByteArray()
-        Log.i(TAG, "Sending update to ${registeredDevices.size} subscribers")
-        for (device in registeredDevices) {
-            val nicknameCharacteristic = bluetoothGattServer
-                ?.getService(UUID.fromString(BleGattAttributes.INFO_SERVICE))
-                ?.getCharacteristic(UUID.fromString((BleGattAttributes.NICKNAME_CHAR)))
-            nicknameCharacteristic?.value = nickname
-            bluetoothGattServer?.notifyCharacteristicChanged(device, nicknameCharacteristic, false)
-            val locationCharacteristic = bluetoothGattServer
-                ?.getService(UUID.fromString(BleGattAttributes.INFO_SERVICE))
-                ?.getCharacteristic(UUID.fromString((BleGattAttributes.LOCATION_CHAR)))
-            locationCharacteristic?.value = location
-            bluetoothGattServer?.notifyCharacteristicChanged(device, locationCharacteristic, false)
-        }
-    }
-    /**
-     * Callback to handle incoming requests to the GATT server.
-     * All read/write requests for characteristics and descriptors are handled here.
-     */
-    private val gattServerCallback = object : BluetoothGattServerCallback() {
-        override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i(TAG, "BluetoothDevice CONNECTED: $device")
-                //add any device connected
-                registeredDevices.add(device)
-                //refresh connected devices area
-                addConnectDevice(device)
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.i(TAG, "BluetoothDevice DISCONNECTED: $device")
-                //Remove device from any active subscriptions
-                registeredDevices.remove(device)
-                //refresh connected devices area
-                removeConnectDevice(device)
-            }
-        }
-        override fun onCharacteristicReadRequest(
-            device: BluetoothDevice, requestId: Int, offset: Int,
-            characteristic: BluetoothGattCharacteristic) {
-            when (characteristic.uuid) {
-                UUID.fromString(BleGattAttributes.NAME_CHAR) -> {
-                    Log.i(TAG, "Read Name")
-                    bluetoothGattServer?.sendResponse(
-                        device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0,
-                        null
-                    )
-                }
-                UUID.fromString(BleGattAttributes.NICKNAME_CHAR) -> {
-                    Log.i(TAG, "Read Nickname")
-                    bluetoothGattServer?.sendResponse(
-                        device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0,
-                        BleGattAttributes.getNicknameByteArray()
-                    )
-                }
-                UUID.fromString(BleGattAttributes.LOCATION_CHAR) -> {
-                    Log.i(TAG, "Read Location")
-                    bluetoothGattServer?.sendResponse(
-                        device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0,
-                        BleGattAttributes.getLocationByteArray()
-                    )
-                }
-                else -> {
-                    // Invalid characteristic
-                    Log.w(TAG, "Invalid Characteristic Read: " + characteristic.uuid)
-                    bluetoothGattServer?.sendResponse(
-                        device,
-                        requestId,
-                        BluetoothGatt.GATT_FAILURE,
-                        0,
-                        null
-                    )
-                }
-            }
-        }
-        override fun onDescriptorReadRequest(
-            device: BluetoothDevice, requestId: Int, offset: Int,
-            descriptor: BluetoothGattDescriptor) {
-            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_NOTIFY) == descriptor.uuid) {
-                Log.d(TAG, "Config descriptor read")
-                val returnValue = if (registeredDevices.contains(device)) {
-                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                } else {
-                    BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
-                }
-                bluetoothGattServer?.sendResponse(device,
-                    requestId,
-                    BluetoothGatt.GATT_SUCCESS,
-                    0,
-                    returnValue)
-            } else {
-                Log.w(TAG, "Unknown descriptor read request")
-                bluetoothGattServer?.sendResponse(device,
-                    requestId,
-                    BluetoothGatt.GATT_FAILURE,
-                    0, null)
-            }
-        }
-        override fun onDescriptorWriteRequest(
-            device: BluetoothDevice, requestId: Int,
-            descriptor: BluetoothGattDescriptor,
-            preparedWrite: Boolean, responseNeeded: Boolean,
-            offset: Int, value: ByteArray) {
-            if (UUID.fromString(BleGattAttributes.CLIENT_CHARACTERISTIC_NOTIFY) == descriptor.uuid) {
-                if (Arrays.equals(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, value)) {
-                    Log.d(TAG, "Subscribe device to notifications: $device")
-                    registeredDevices.add(device)
-                } else if (Arrays.equals(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE, value)) {
-                    Log.d(TAG, "Unsubscribe device from notifications: $device")
-                    registeredDevices.remove(device)
-                }
-                if (responseNeeded) {
-                    bluetoothGattServer?.sendResponse(device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0, null)
-                }
-            } else {
-                Log.w(TAG, "Unknown descriptor write request")
-                if (responseNeeded) {
-                    bluetoothGattServer?.sendResponse(device,
-                        requestId,
-                        BluetoothGatt.GATT_FAILURE,
-                        0, null)
-                }
-            }
-        }
+        BleGattServer.notifyRegisteredDevices()
     }
     //connected devices area
     private lateinit var bleConnectRecyclerAdapter: BleConnectRecyclerAdapter
