@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.4"/>
+        app:layout_constraintGuide_percent="0.3"/>
 
     <LinearLayout
         android:layout_width="0dp"
@@ -36,13 +36,13 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_device_address"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/device_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -51,35 +51,35 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_state"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/connection_state"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/disconnected"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
         </LinearLayout>
+<!--        <LinearLayout android:orientation="horizontal"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_margin="10dp">-->
+<!--         </LinearLayout>-->
         <LinearLayout android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp">
-         </LinearLayout>
-         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp">
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_gender"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_gender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -88,14 +88,14 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_nickname"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_nickname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -104,16 +104,15 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_location"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_location"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="18sp"/>
+                android:textSize="10sp"/>
         </LinearLayout>
-
     </LinearLayout>
 
     <LinearLayout
@@ -129,19 +128,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_1">
 
-        <EditText
-            android:id="@+id/txt_chat_message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/chat_send_message"
-            android:textSize="24sp" />
-
-        <Button
-            android:id="@+id/btn_send_msg"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/chat_send_message" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/txt_conversation"
             android:layout_width="match_parent"
@@ -152,6 +138,16 @@
             android:layout_marginBottom="8dp"
             android:scrollbars="vertical"
             android:layout_weight="1"/>
-
+        <EditText
+            android:id="@+id/txt_chat_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/chat_send_message"
+            android:textSize="24sp" />
+        <Button
+            android:id="@+id/btn_send_msg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/chat_send_message" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
