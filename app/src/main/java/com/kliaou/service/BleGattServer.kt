@@ -1,14 +1,11 @@
 package com.kliaou.service
 
-import android.app.Application
 import android.bluetooth.*
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.kliaou.MainApplication
-import com.kliaou.db.RepSetting
-import com.kliaou.ui.BleHomeActivity
 import java.util.*
 
 private const val TAG = "BleGattService"
@@ -19,13 +16,15 @@ object BleGattServer {
     private var bluetoothGattServer: BluetoothGattServer? = null
     /* Collection of notification subscribers */
     private val _registeredDevices = mutableSetOf<BluetoothDevice>()
-    //val registeredDevices = _registeredDevices as LiveData<MutableSet<BluetoothDevice>>
     // LiveData for reporting the messages sent to the device
     private val _messages = MutableLiveData<BleMessage>()
     val messages = _messages as LiveData<BleMessage>
     // LiveData for reporting connection requests
     private val _connectionRequest = MutableLiveData<BluetoothDevice>()
     val connectionRequest = _connectionRequest as LiveData<BluetoothDevice>
+    // LiveData for reporting device disconnected
+    private val _disconnectionDevice = MutableLiveData<BluetoothDevice>()
+    val disconnectionDevice = _disconnectionDevice as LiveData<BluetoothDevice>
     // LiveData for reporting the messages sent to the device
     private val _requestEnableBluetooth = MutableLiveData<Boolean>()
     val requestEnableBluetooth = _requestEnableBluetooth as LiveData<Boolean>
@@ -83,7 +82,8 @@ object BleGattServer {
      * All read/write requests for characteristics and descriptors are handled here.
      */
     private val gattServerCallback = object : BluetoothGattServerCallback() {
-        override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
+        override fun onConnectionStateChange(
+            device: BluetoothDevice, status: Int, newState: Int) {
             super.onConnectionStateChange(device, status, newState)
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "BluetoothDevice CONNECTED: $device")
@@ -94,6 +94,7 @@ object BleGattServer {
                 Log.i(TAG, "BluetoothDevice DISCONNECTED: $device")
                 //Remove device from any active subscriptions
                 _registeredDevices.remove(device)
+                _disconnectionDevice.postValue(device)
             }
         }
 

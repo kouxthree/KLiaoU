@@ -43,7 +43,6 @@ class BleConnectDetailActivity : AppCompatActivity() {
         //chat area view
         createChatView()
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {

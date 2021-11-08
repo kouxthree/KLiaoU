@@ -3,7 +3,9 @@ package com.kliaou.ui
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
-import android.bluetooth.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -31,6 +33,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.lifecycle.Observer
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
 import com.kliaou.blerecycler.BleConnectRecyclerAdapter
@@ -41,9 +44,7 @@ import com.kliaou.databinding.BleHomeLocationBinding
 import com.kliaou.db.Gender
 import com.kliaou.db.RepSetting
 import com.kliaou.service.BleAdvertiserService
-import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattServer
-import java.util.*
 import kotlin.collections.ArrayList
 
 class BleHomeActivity : AppCompatActivity() {
@@ -246,8 +247,6 @@ class BleHomeActivity : AppCompatActivity() {
         Intent(applicationContext, BleAdvertiserService::class.java)
 
     //gatt server/callers to BleGattServer
-    /* Collection of notification subscribers */
-    private val registeredDevices = mutableSetOf<BluetoothDevice>()
     /**
      * Initialize the GATT server instance with the services/characteristics
      */
@@ -288,22 +287,32 @@ class BleHomeActivity : AppCompatActivity() {
         _binding.listviewConnected.layoutManager = connectDeviceLinearLayoutManager
         bleConnectRecyclerAdapter = BleConnectRecyclerAdapter()
         _binding.listviewConnected.adapter = bleConnectRecyclerAdapter
+        //set registered devices observer
+        BleGattServer.connectionRequest.observe(this, connectionRequestObserver)
+        BleGattServer.disconnectionDevice.observe(this, disconnectionDeviceObserver)
     }
-    private fun addConnectDevice(device: BluetoothDevice) {
-        val item = BleRecyclerItem(
+    private fun changedRegisteredDevice(device: BluetoothDevice): BleRecyclerItem{
+        return BleRecyclerItem(
             Name = device.name,
             Address = device.address,
             Timestamp = System.currentTimeMillis()
         )
+    }
+    private val connectionRequestObserver = Observer<BluetoothDevice> { device ->
+        Log.d(TAG, "Connection request observer: have device $device")
+        addConnectDevice(device)
+    }
+    private val disconnectionDeviceObserver = Observer<BluetoothDevice> { device ->
+        Log.d(TAG, "Disconnection device observer: $device")
+        removeConnectDevice(device)
+    }
+    private fun addConnectDevice(device: BluetoothDevice) {
+        val item = changedRegisteredDevice(device)
         Log.d(TAG, "add connect device: single")
         bleConnectRecyclerAdapter.addSingleItem(item)
     }
     private fun removeConnectDevice(device: BluetoothDevice) {
-        val item = BleRecyclerItem(
-            Name = device.name,
-            Address = device.address,
-            Timestamp = System.currentTimeMillis()
-        )
+        val item = changedRegisteredDevice(device)
         Log.d(TAG, "remove connect device: single")
         bleConnectRecyclerAdapter.removeSingleItem(item)
     }
