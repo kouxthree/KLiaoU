@@ -36,6 +36,7 @@ class BleGattClientService: Service() {
         const val ACTION_DATA_AVAILABLE = "com.kliaou.ACTION_DATA_AVAILABLE"
         const val ACTION_GATT_SERVICES_REFRESH = "com.kliaou.ACTION_GATT_SERVICES_REFRESH"
         const val EXTRA_CHAR_UUID = "com.kliaou.EXTRA_CHAR_UUID"
+        const val EXTRA_CHAT_CHAR_UUID = "com.kliaou.EXTRA_CHAT_CHAR_UUID"
         const val EXTRA_DATA = "com.kliaou.EXTRA_DATA"
         val UUID_CHAT_CHAR: UUID = UUID.fromString(BleGattAttributes.CHAT_UUID)
     }
@@ -53,11 +54,13 @@ class BleGattClientService: Service() {
                 broadcastUpdate(intentAction)
                 Log.i(TAG, "Connected to GATT server.")
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt?.discoverServices())
+                BleGattServer.gatt = gatt
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED
                 mConnectionState = STATE_DISCONNECTED
                 Log.i(TAG, "Disconnected from GATT server.")
                 broadcastUpdate(intentAction)
+                BleGattServer.gatt = null
             }
         }
         override fun onServicesDiscovered(
@@ -102,7 +105,8 @@ class BleGattClientService: Service() {
 //            Log.d(TAG, String.format("Received name: %d", nameString))
 //            intent.putExtra(EXTRA_DATA, nameString.toString())
 //        } else {
-            // For all other profiles, writes the data formatted in HEX.
+//        } else {
+//             For all other profiles, writes the data formatted in HEX.
             val data = characteristic.value
             if (data != null && data.isNotEmpty()) {
                 val stringBuilder = StringBuilder(data.size)
@@ -277,4 +281,5 @@ class BleGattClientService: Service() {
         if (mBluetoothGatt == null) return null
         return mBluetoothGatt!!.services
     }
+
 }

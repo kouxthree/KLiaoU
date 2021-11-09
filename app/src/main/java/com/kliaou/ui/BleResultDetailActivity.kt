@@ -14,21 +14,29 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.ADVERTISE_DATA_FEMALE
 import com.kliaou.ADVERTISE_DATA_MALE
 import com.kliaou.R
 import com.kliaou.REMOTE_INFO_REFRESH_RATE
+import com.kliaou.blerecycler.BleConnectRecyclerAdapter
 import com.kliaou.blerecycler.ChatMessageAdapter
 import com.kliaou.service.BleGattAttributes
+import com.kliaou.service.BleGattAttributes.Companion.CHAT_SERVICE
 import com.kliaou.service.BleGattClientService
 import com.kliaou.service.BleGattServer
 import com.kliaou.service.BleMessage
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class BleResultDetailActivity : AppCompatActivity() {
     private var mConnectionState: TextView? = null
     private var mRemoteGenderView: TextView? = null
     private var mRemoteNicknameView: TextView? = null
     private var mRemoteLocationView: TextView? = null
+    private var mTxtConversation: RecyclerView? = null
     private var mChatMessageView: TextView? = null
     private var mSendMsgBtnView: Button? = null
     private var mDeviceName: String? = null
@@ -161,6 +169,7 @@ class BleResultDetailActivity : AppCompatActivity() {
         mRemoteGenderView = findViewById<View>(R.id.remote_gender) as TextView
         mRemoteNicknameView = findViewById<View>(R.id.remote_nickname) as TextView
         mRemoteLocationView = findViewById<View>(R.id.remote_location) as TextView
+        mTxtConversation = findViewById<View>(R.id.txt_conversation) as RecyclerView
         mChatMessageView = findViewById<View>(R.id.txt_chat_message) as TextView
         mSendMsgBtnView = findViewById<View>(R.id.btn_send_msg) as Button
         supportActionBar?.title = mDeviceName
@@ -281,6 +290,10 @@ class BleResultDetailActivity : AppCompatActivity() {
                         //read characteristics from server
                         readAndNotifyChars(gattCharacteristic)
                     }
+                    BleGattAttributes.CHAT_MESSAGE_CHAR -> {
+                        //chat message char
+                        BleGattServer.chatMessageChar = gattCharacteristic
+                    }
                 }
             }
             mGattCharacteristics!!.add(chars)
@@ -338,16 +351,20 @@ class BleResultDetailActivity : AppCompatActivity() {
     }
 
     //chat view
-    private lateinit var bluetoothAdapter: BluetoothAdapter
+//    private lateinit var bluetoothAdapter: BluetoothAdapter
     private val chatMessageAdapter = ChatMessageAdapter()
     private val chatMessageObserver = Observer<BleMessage> { message ->
         Log.d(TAG, "Have message ${message.text}")
         chatMessageAdapter.addMessage(message)
     }
     private fun createChatView() {
-        //init bluetooth manager
-        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothAdapter = bluetoothManager.adapter
+//        //init bluetooth manager
+//        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+//        bluetoothAdapter = bluetoothManager.adapter
+        //chat message recycler adapter
+        Log.d(TAG, "chatWith: set adapter $chatMessageAdapter")
+        mTxtConversation?.layoutManager = LinearLayoutManager(this)
+        mTxtConversation?.adapter = chatMessageAdapter
         //send message listener
         mSendMsgBtnView!!.setOnClickListener {
             val message = mChatMessageView!!.text.toString()

@@ -34,12 +34,14 @@ class BleGattAttributes {
                 //put(DEVICE_INFO_SERVICE, "Device Information Service")
                 put(NAME_SERVICE, "Name Service")
                 put(INFO_SERVICE, "Info Service")
+                put(CHAT_SERVICE, "Chat Service")
                 //characteristics.
                 //put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
                 //put(MANUFACTURER_NAME_STRING, "Manufacturer Name String")
                 put(NAME_CHAR, "Name Char")
                 put(NICKNAME_CHAR, "Nickname Char")
                 put(LOCATION_CHAR, "Location Char")
+                put(CHAT_MESSAGE_CHAR, "Chat Message Char")
             }
         }
 
