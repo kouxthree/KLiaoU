@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.20"/>
+        app:layout_constraintGuide_percent="0.50"/>
 
     <LinearLayout
         android:layout_width="0dp"
@@ -21,6 +21,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:layout_margin="10dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/guideline_h_1"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,39 +36,43 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_device_address"
-                android:textSize="10sp"/>
+                android:textSize="24sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/device_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="10sp"/>
-            <Space android:layout_width="5dp"
-                android:layout_height="wrap_content"/>
+                android:textSize="24sp"/>
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_state"
-                android:textSize="10sp"/>
+                android:textSize="24sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/connection_state"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/disconnected"
-                android:textSize="10sp"/>
-            <Space android:layout_width="5dp"
-                android:layout_height="wrap_content"/>
+                android:textSize="24sp"/>
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_gender"
-                android:textSize="10sp"/>
+                android:textSize="24sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_gender"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="10sp"/>
+                android:textSize="24sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -75,7 +80,7 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_nickname"
-                android:textSize="10sp"/>
+                android:textSize="24sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_nickname"
@@ -83,12 +88,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
                 android:textSize="24sp"/>
-            <Space android:layout_width="5dp"
-                android:layout_height="wrap_content"/>
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_location"
-                android:textSize="10sp"/>
+                android:textSize="24sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_location"
@@ -97,41 +104,12 @@
                 android:text="@string/no_data"
                 android:textSize="24sp"/>
         </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_1">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/txt_conversation"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:scrollbars="vertical"
-            android:layout_weight="1"/>
-        <EditText
-            android:id="@+id/txt_chat_message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/chat_send_message"
-            android:textSize="15sp" />
+        <Space android:layout_width="wrap_content"
+            android:layout_height="15dp"/>
         <Button
-            android:id="@+id/btn_send_msg"
+            android:id="@+id/btn_greeting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/chat_send_message" />
+            android:text="@string/chat_greeting" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

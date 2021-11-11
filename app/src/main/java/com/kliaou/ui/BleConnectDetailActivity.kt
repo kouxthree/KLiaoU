@@ -1,5 +1,6 @@
 package com.kliaou.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
@@ -7,14 +8,8 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
-import com.kliaou.blerecycler.ChatMessageAdapter
 import com.kliaou.databinding.BleActivityConnectDetailBinding
-import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattServer
-import com.kliaou.service.BleMessage
-import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.LinearLayoutManager
-import java.util.UUID
 
 class BleConnectDetailActivity : AppCompatActivity() {
     private lateinit var _binding: BleActivityConnectDetailBinding
@@ -26,8 +21,8 @@ class BleConnectDetailActivity : AppCompatActivity() {
         _binding = BleActivityConnectDetailBinding.inflate(layoutInflater)
         setContentView(R.layout.ble_activity_connect_detail)
         val intent = intent
-        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
-        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
+        mDeviceName = intent.getStringExtra(BleChatActivity.EXTRAS_DEVICE_NAME)
+        mDeviceAddress = intent.getStringExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS)
 
         // Sets up UI references.
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -35,8 +30,16 @@ class BleConnectDetailActivity : AppCompatActivity() {
         (findViewById<View>(R.id.device_address) as TextView).text = mDeviceAddress
         supportActionBar?.title = mDeviceName
 
-        //chat area view
-        createChatView()
+        //greeting listener
+        _binding.btnGreeting.setOnClickListener {
+            Log.d(TAG, "chatWith: $mDeviceAddress")
+            val showChatActivity = Intent(applicationContext, BleChatActivity::class.java)
+            //device name and mac address
+            showChatActivity.putExtra(BleChatActivity.EXTRAS_CHAT_CALLER, ChatCaller.Server)
+            showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_NAME, mDeviceName)
+            showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress)
+            applicationContext.startActivity(showChatActivity)
+        }
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -47,46 +50,8 @@ class BleConnectDetailActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-    override fun onDestroy() {
-        super.onDestroy()
-        //remove chat service
-        BleGattServer.removeChatService()
-    }
-    //chat view
-//    private lateinit var bluetoothAdapter: BluetoothAdapter
-    private val chatMessageAdapter = ChatMessageAdapter()
-    private val chatMessageObserver = Observer<BleMessage> { message ->
-        Log.d(TAG, "Have message ${message.text}")
-        chatMessageAdapter.addMessage(message)
-    }
-    private fun createChatView() {
-        //add chat service
-        BleGattServer.addChatService()
-        //chat message recycler adapter
-        Log.d(TAG, "chatWith: set adapter $chatMessageAdapter")
-        _binding.txtConversation.layoutManager = LinearLayoutManager(this)
-        _binding.txtConversation.adapter = chatMessageAdapter
-//        //init bluetooth manager
-//        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-//        bluetoothAdapter = bluetoothManager.getAdapter()
-        //send message listener
-        _binding.btnSendMsg.setOnClickListener {
-            val message = _binding.txtChatMessage.text.toString()
-//            // only send message if it is not empty
-//            if (message.isNotEmpty()) {
-//                BleGattServer.sendMessage(message)
-//                // clear message
-//                _binding.txtChatMessage.setText("")
-//            }
-        }
-        //set message observer
-        BleGattServer.messages.observe(this, chatMessageObserver)
-    }
 
     companion object {
         private val TAG = BleConnectDetailActivity::class.java.simpleName
-        private val CHAT_UUID = UUID.fromString(BleGattAttributes.NAME_CHAR)
-        const val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
-        const val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
     }
 }

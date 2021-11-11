@@ -10,12 +10,14 @@
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_main.xml" value="0.19641025641025642" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_home_main_ble.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/activity_scanresult_detail.xml" value="0.2082051282051282" />
-        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_connect_detail.xml" value="0.25" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_chat.xml" value="0.22864583333333333" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_connect_detail.xml" value="0.22" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_home_main.xml" value="0.1" />
-        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_result_detail.xml" value="0.2" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_result_detail.xml" value="0.22" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_activity_scanresult_detail.xml" value="0.19947916666666668" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_device_item.xml" value="0.13645833333333332" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_gatt_characteristics.xml" value="0.19947916666666668" />
+        <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_home_location.xml" value="0.13958333333333334" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_main_location.xml" value="0.3421875" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_main_setting.xml" value="0.1" />
         <entry key="..\:/AndroidStudioProjects/KLiaoU/app/src/main/res/layout/ble_result_item.xml" value="0.2203125" />

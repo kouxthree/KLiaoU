@@ -41,6 +41,9 @@
         <activity
             android:name=".ui.BleConnectDetailActivity"
             android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".ui.BleChatActivity"
+            android:screenOrientation="portrait"></activity>
         <service
             android:name=".service.BleAdvertiserService"
             android:enabled="true"

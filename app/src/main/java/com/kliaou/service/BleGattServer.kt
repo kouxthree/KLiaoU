@@ -22,9 +22,12 @@ object BleGattServer {
     // LiveData for reporting connection requests
     private val _connectionRequest = MutableLiveData<BluetoothDevice>()
     val connectionRequest = _connectionRequest as LiveData<BluetoothDevice>
+    // LiveData for reporting disconnection requests
+    private val _disConnectionRequest = MutableLiveData<BluetoothDevice>()
+    val disConnectionRequest = _disConnectionRequest as LiveData<BluetoothDevice>
     // LiveData for reporting device disconnected
-    private val _disconnectionDevice = MutableLiveData<BluetoothDevice>()
-    val disconnectionDevice = _disconnectionDevice as LiveData<BluetoothDevice>
+    private val _disConnectionDevice = MutableLiveData<BluetoothDevice>()
+    val disConnectionDevice = _disConnectionDevice as LiveData<BluetoothDevice>
     // LiveData for reporting the messages sent to the device
     var chatService = BleGattAttributes.createChatService()
     /**
@@ -100,7 +103,8 @@ object BleGattServer {
                 Log.i(TAG, "BluetoothDevice DISCONNECTED: $device")
                 //Remove device from any active subscriptions
                 _registeredDevices.remove(device)
-                _disconnectionDevice.postValue(device)
+                _disConnectionDevice.postValue(device)
+                _disConnectionRequest.postValue(device)
             }
         }
 
@@ -258,14 +262,13 @@ object BleGattServer {
         if(chatMessageChar == null) return false
         chatMessageChar?.let { characteristic ->
             characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-
             val messageBytes = message.toByteArray(Charsets.UTF_8)
             characteristic.value = messageBytes
             gatt?.let {
                 val success = it.writeCharacteristic(chatMessageChar)
                 Log.d(TAG, "onServicesDiscovered: message send: $success")
                 if (success) {
-                    BleGattServer._messages.value = BleMessage.LocalMessage(message)
+                    _messages.value = BleMessage.LocalMessage(message)
                 }
             } ?: run {
                 Log.d(TAG, "sendMessage: no gatt connection to send a message with")

@@ -15,10 +15,10 @@ data class EntitySetting(
     @ColumnInfo(name = "remote_gender") var remoteGender: Int = Gender.OTHER,
 )
 
-class Gender() {
+class Gender {
     companion object {
-        val OTHER = 0
-        val MALE = 1
-        val FEMALE = 2
+        const val OTHER = 0
+        const val MALE = 1
+        const val FEMALE = 2
     }
 }

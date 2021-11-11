@@ -289,7 +289,7 @@ class BleHomeActivity : AppCompatActivity() {
         _binding.listviewConnected.adapter = bleConnectRecyclerAdapter
         //set registered devices observer
         BleGattServer.connectionRequest.observe(this, connectionRequestObserver)
-        BleGattServer.disconnectionDevice.observe(this, disconnectionDeviceObserver)
+        BleGattServer.disConnectionDevice.observe(this, disConnectionDeviceObserver)
     }
     private fun changedRegisteredDevice(device: BluetoothDevice): BleRecyclerItem{
         return BleRecyclerItem(
@@ -302,7 +302,7 @@ class BleHomeActivity : AppCompatActivity() {
         Log.d(TAG, "Connection request observer: have device $device")
         addConnectDevice(device)
     }
-    private val disconnectionDeviceObserver = Observer<BluetoothDevice> { device ->
+    private val disConnectionDeviceObserver = Observer<BluetoothDevice> { device ->
         Log.d(TAG, "Disconnection device observer: $device")
         removeConnectDevice(device)
     }
