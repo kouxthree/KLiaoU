@@ -18,6 +18,7 @@ import com.kliaou.R
 import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattClientService
 import com.kliaou.service.BleGattServer
+import com.kliaou.service.BleMessage
 
 class BleResultDetailActivity : AppCompatActivity() {
     private var mConnectionState: TextView? = null
@@ -118,7 +119,10 @@ class BleResultDetailActivity : AppCompatActivity() {
             }
             BleGattAttributes.CHAT_MESSAGE_CHAR -> {
                 val data: String = intent.getStringExtra(BleGattClientService.EXTRA_DATA) ?: return
-//TODO
+                Log.d(TAG, "onCharacteristicWriteRequest: Have message: \"$data\"")
+                data?.let {
+                    BleGattServer._messages.postValue(BleMessage.RemoteMessage(it))
+                }
             }
         }
     }
