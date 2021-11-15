@@ -54,13 +54,13 @@ class BleGattClientService: Service() {
                 broadcastUpdate(intentAction)
                 Log.i(TAG, "Connected to GATT server.")
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt?.discoverServices())
-                BleGattServer.gatt = mBluetoothGatt
+                BleGattServer.gattForClientUse = mBluetoothGatt
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED
                 mConnectionState = STATE_DISCONNECTED
                 Log.i(TAG, "Disconnected from GATT server.")
                 broadcastUpdate(intentAction)
-                BleGattServer.gatt = null
+                BleGattServer.gattForClientUse = null
             }
         }
         override fun onServicesDiscovered(

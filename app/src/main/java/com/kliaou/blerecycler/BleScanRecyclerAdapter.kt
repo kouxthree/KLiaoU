@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.ADVERTISE_UUID
 import com.kliaou.databinding.BleDeviceItemBinding
+import com.kliaou.ui.BleChatActivity
 import com.kliaou.ui.BleResultDetailActivity
 
 class BleScanRecyclerAdapter : RecyclerView.Adapter<BleScanRecyclerAdapter.ResultHolder>() {
@@ -71,10 +72,10 @@ class BleScanRecyclerAdapter : RecyclerView.Adapter<BleScanRecyclerAdapter.Resul
             val context = v.context
             val showActivityIntent = Intent(context, BleResultDetailActivity::class.java)
             //scanned device name and mac address
-            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_NAME, _scanResult?.device?.name)
-            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_ADDRESS, _scanResult?.device?.address)
+            showActivityIntent.putExtra(BleChatActivity.EXTRAS_DEVICE_NAME, _scanResult?.device?.name)
+            showActivityIntent.putExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS, _scanResult?.device?.address)
             showActivityIntent.putExtra(
-                BleResultDetailActivity.EXTRAS_REMOTE_GENDER,
+                BleChatActivity.EXTRAS_REMOTE_GENDER,
                 _scanResult?.scanRecord?.serviceData?.get(ADVERTISE_UUID))
             context.startActivity(showActivityIntent)
         }

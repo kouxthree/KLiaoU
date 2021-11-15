@@ -25,7 +25,6 @@ class BleResultDetailActivity : AppCompatActivity() {
     private var mRemoteGenderView: TextView? = null
     private var mRemoteNicknameView: TextView? = null
     private var mRemoteLocationView: TextView? = null
-    private var mGreetingBtnView: Button? = null
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
     private var mRemoteGenderBytes: ByteArray? = null
@@ -147,8 +146,6 @@ class BleResultDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ble_activity_result_detail)
-
-        val intent = intent
         mDeviceName = intent.getStringExtra(BleChatActivity.EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS)
         mRemoteGenderBytes = intent.getByteArrayExtra(BleChatActivity.EXTRAS_REMOTE_GENDER)
@@ -159,7 +156,6 @@ class BleResultDetailActivity : AppCompatActivity() {
         mRemoteGenderView = findViewById<View>(R.id.remote_gender) as TextView
         mRemoteNicknameView = findViewById<View>(R.id.remote_nickname) as TextView
         mRemoteLocationView = findViewById<View>(R.id.remote_location) as TextView
-        mGreetingBtnView = findViewById<View>(R.id.btn_greeting) as Button
         supportActionBar?.title = mDeviceName
         displayAdvertiseServiceInfo()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -169,14 +165,14 @@ class BleResultDetailActivity : AppCompatActivity() {
         mRemoteNicknameView!!.setOnClickListener(remoteNicknameClickedListener())
         mRemoteLocationView!!.setOnClickListener(remoteLocationClickedListener())
         //greeting listener
-        mGreetingBtnView!!.setOnClickListener {
+        findViewById<View>(R.id.btn_greeting)!!.setOnClickListener {
             Log.d(TAG, "chatWith: $mDeviceAddress")
-            val showChatActivity = Intent(applicationContext, BleChatActivity::class.java)
+            val showChatActivity = Intent(this, BleChatActivity::class.java)
             //device name and mac address
             showChatActivity.putExtra(BleChatActivity.EXTRAS_CHAT_CALLER, ChatCaller.Client)
             showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_NAME, mDeviceName)
             showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress)
-            applicationContext.startActivity(showChatActivity)
+            startActivity(showChatActivity)
         }
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -8,19 +8,14 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
-import com.kliaou.databinding.BleActivityConnectDetailBinding
-import com.kliaou.service.BleGattServer
 
 class BleConnectDetailActivity : AppCompatActivity() {
-    private lateinit var _binding: BleActivityConnectDetailBinding
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _binding = BleActivityConnectDetailBinding.inflate(layoutInflater)
         setContentView(R.layout.ble_activity_connect_detail)
-        val intent = intent
         mDeviceName = intent.getStringExtra(BleChatActivity.EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS)
 
@@ -31,14 +26,14 @@ class BleConnectDetailActivity : AppCompatActivity() {
         supportActionBar?.title = mDeviceName
 
         //greeting listener
-        _binding.btnGreeting.setOnClickListener {
+        findViewById<View>(R.id.btn_greeting)!!.setOnClickListener {
             Log.d(TAG, "chatWith: $mDeviceAddress")
-            val showChatActivity = Intent(applicationContext, BleChatActivity::class.java)
+            val showChatActivity = Intent(this, BleChatActivity::class.java)
             //device name and mac address
             showChatActivity.putExtra(BleChatActivity.EXTRAS_CHAT_CALLER, ChatCaller.Server)
             showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_NAME, mDeviceName)
             showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress)
-            applicationContext.startActivity(showChatActivity)
+            startActivity(showChatActivity)
         }
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

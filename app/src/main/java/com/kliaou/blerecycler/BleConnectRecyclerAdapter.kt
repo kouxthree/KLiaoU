@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.kliaou.databinding.BleDeviceItemBinding
+import com.kliaou.ui.BleChatActivity
 import com.kliaou.ui.BleConnectDetailActivity
-import com.kliaou.ui.BleResultDetailActivity
 
 class BleConnectRecyclerAdapter : RecyclerView.Adapter<BleConnectRecyclerAdapter.ResultHolder>() {
 
@@ -77,8 +77,8 @@ class BleConnectRecyclerAdapter : RecyclerView.Adapter<BleConnectRecyclerAdapter
             val context = v.context
             val showActivityIntent = Intent(context, BleConnectDetailActivity::class.java)
             //connected device name and mac address
-            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_NAME, _connectResult?.Name)
-            showActivityIntent.putExtra(BleResultDetailActivity.EXTRAS_DEVICE_ADDRESS, _connectResult?.Address)
+            showActivityIntent.putExtra(BleChatActivity.EXTRAS_DEVICE_NAME, _connectResult?.Name)
+            showActivityIntent.putExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS, _connectResult?.Address)
             context.startActivity(showActivityIntent)
         }
     }

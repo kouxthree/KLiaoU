@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothDevice
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +13,10 @@ import com.kliaou.blerecycler.ChatMessageAdapter
 import com.kliaou.databinding.BleActivityChatBinding
 import com.kliaou.service.BleGattServer
 import com.kliaou.service.BleMessage
+
+import android.bluetooth.BluetoothManager
+import android.content.Context
+
 
 class ChatCaller {
     companion object {
@@ -32,17 +34,19 @@ class BleChatActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = BleActivityChatBinding.inflate(layoutInflater)
-        setContentView(R.layout.ble_activity_connect_detail)
-        val intent = intent
+        setContentView(_binding.root)
         mChatCaller = intent.getIntExtra(EXTRAS_CHAT_CALLER, ChatCaller.Server)
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
 
         // Sets up UI references.
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        (findViewById<View>(R.id.device_name) as TextView).text = mDeviceName
-        (findViewById<View>(R.id.device_address) as TextView).text = mDeviceAddress
         supportActionBar?.title = mDeviceName
+
+        //set remote device for server use
+        val manager =
+            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        BleGattServer.deviceForServerUse = manager.adapter.getRemoteDevice(mDeviceAddress)
 
         //chat area view
         createChatView()
@@ -55,11 +59,6 @@ class BleChatActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-    override fun onDestroy() {
-        super.onDestroy()
-        //remove chat service
-        BleGattServer.removeChatService()
     }
     //chat view
     private val chatMessageAdapter = ChatMessageAdapter()
@@ -81,8 +80,6 @@ class BleChatActivity : AppCompatActivity() {
         }
     }
     private fun createChatView() {
-        //add chat service
-        BleGattServer.addChatService()
         //chat message recycler adapter
         Log.d(TAG, "chatWith: set adapter $chatMessageAdapter")
         _binding.txtConversation.layoutManager = LinearLayoutManager(this)
@@ -92,7 +89,10 @@ class BleChatActivity : AppCompatActivity() {
             val message = _binding.txtChatMessage.text.toString()
             // only send message if it is not empty
             if (message.isNotEmpty()) {
-                BleGattServer.sendMessage(message)
+                when(mChatCaller) {
+                    ChatCaller.Server -> BleGattServer.serverSendMessage(message)
+                    ChatCaller.Client -> BleGattServer.clientSendMessage(message)
+                }
                 // clear message
                 _binding.txtChatMessage.setText("")
             }
