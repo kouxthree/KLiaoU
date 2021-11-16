@@ -52,11 +52,6 @@ class BleChatActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-    override fun onDestroy() {
-        super.onDestroy()
-        //remove chat service
-        BleGattServer.removeChatService()
-    }
     //chat view
     private val chatMessageAdapter = ChatMessageAdapter()
     private val chatMessageObserver = Observer<BleMessage> { message ->
@@ -77,8 +72,6 @@ class BleChatActivity : AppCompatActivity() {
         }
     }
     private fun createChatView() {
-        //add chat service
-        BleGattServer.addChatService()
         //chat message recycler adapter
         Log.d(TAG, "chatWith: set adapter $chatMessageAdapter")
         _binding.txtConversation.layoutManager = LinearLayoutManager(this)

@@ -44,6 +44,9 @@ class BleConnectDetailActivity : AppCompatActivity() {
             startActivity(showChatActivity)
         }
 
+        //add chat service
+        BleGattServer.addChatService()
+
         //connect to gatt server
         connectToGattServer()
     }
@@ -55,6 +58,11 @@ class BleConnectDetailActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        //remove chat service
+        BleGattServer.removeChatService()
     }
 
     private fun connectToGattServer() {

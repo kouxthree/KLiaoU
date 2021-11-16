@@ -174,6 +174,10 @@ class BleResultDetailActivity : AppCompatActivity() {
             showChatActivity.putExtra(BleChatActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress)
             startActivity(showChatActivity)
         }
+
+        //add chat service
+        BleGattServer.addChatService()
+
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gatt_services, menu)
@@ -227,6 +231,8 @@ class BleResultDetailActivity : AppCompatActivity() {
         super.onDestroy()
         unbindService(mServiceConnection)
         mBleGattClientService = null
+        //remove chat service
+        BleGattServer.removeChatService()
     }
     private fun updateConnectionState(resourceId: Int) {
         runOnUiThread { mConnectionState!!.setText(resourceId) }
