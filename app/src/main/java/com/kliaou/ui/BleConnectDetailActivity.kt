@@ -97,6 +97,10 @@ class BleConnectDetailActivity : AppCompatActivity() {
                 Log.w(TAG, "onServicesDiscovered received: $status")
             }
         }
+        override fun onServiceChanged(
+            gatt: BluetoothGatt) {
+            setChatChar(mBluetoothGatt!!.services)
+        }
     }
     private fun setChatChar(gattServices: List<BluetoothGattService>?) {
         if (gattServices == null) return
