@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.kliaou.R
+import com.kliaou.service.BleGattServer
 
 class BleConnectDetailActivity : AppCompatActivity() {
     private var mDeviceName: String? = null
@@ -45,7 +46,6 @@ class BleConnectDetailActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
     companion object {
         private val TAG = BleConnectDetailActivity::class.java.simpleName
     }

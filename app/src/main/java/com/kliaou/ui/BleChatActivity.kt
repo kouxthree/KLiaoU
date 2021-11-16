@@ -14,9 +14,6 @@ import com.kliaou.databinding.BleActivityChatBinding
 import com.kliaou.service.BleGattServer
 import com.kliaou.service.BleMessage
 
-import android.bluetooth.BluetoothManager
-import android.content.Context
-
 
 class ChatCaller {
     companion object {
@@ -43,11 +40,6 @@ class BleChatActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = mDeviceName
 
-        //set remote device for server use
-        val manager =
-            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        BleGattServer.deviceForServerUse = manager.adapter.getRemoteDevice(mDeviceAddress)
-
         //chat area view
         createChatView()
     }
@@ -59,6 +51,11 @@ class BleChatActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        //remove chat service
+        BleGattServer.removeChatService()
     }
     //chat view
     private val chatMessageAdapter = ChatMessageAdapter()
@@ -80,6 +77,8 @@ class BleChatActivity : AppCompatActivity() {
         }
     }
     private fun createChatView() {
+        //add chat service
+        BleGattServer.addChatService()
         //chat message recycler adapter
         Log.d(TAG, "chatWith: set adapter $chatMessageAdapter")
         _binding.txtConversation.layoutManager = LinearLayoutManager(this)
@@ -89,10 +88,7 @@ class BleChatActivity : AppCompatActivity() {
             val message = _binding.txtChatMessage.text.toString()
             // only send message if it is not empty
             if (message.isNotEmpty()) {
-                when(mChatCaller) {
-                    ChatCaller.Server -> BleGattServer.serverSendMessage(message)
-                    ChatCaller.Client -> BleGattServer.clientSendMessage(message)
-                }
+                BleGattServer.clientSendMessage(message)
                 // clear message
                 _binding.txtChatMessage.setText("")
             }

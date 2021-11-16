@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.50"/>
+        app:layout_constraintGuide_percent="0.70"/>
 
     <LinearLayout
         android:layout_width="0dp"
@@ -36,13 +36,13 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_device_address"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/device_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -50,14 +50,14 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_state"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/connection_state"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/disconnected"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -65,14 +65,14 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_gender"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_gender"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -80,14 +80,14 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_nickname"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_nickname"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
         </LinearLayout>
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -95,14 +95,14 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_location"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
             <Space android:layout_width="5dp"
                 android:layout_height="wrap_content"/>
             <TextView android:id="@+id/remote_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
-                android:textSize="24sp"/>
+                android:textSize="18sp"/>
         </LinearLayout>
         <Space android:layout_width="wrap_content"
             android:layout_height="15dp"/>

@@ -28,6 +28,8 @@ object BleGattServer {
     // LiveData for reporting device disconnected
     private val _disConnectionDevice = MutableLiveData<BluetoothDevice>()
     val disConnectionDevice = _disConnectionDevice as LiveData<BluetoothDevice>
+    //chat service
+    var chatService = BleGattAttributes.createChatService()
     /**
      * Initialize the GATT server instance with the services/characteristics
      */
@@ -36,15 +38,28 @@ object BleGattServer {
         bluetoothManager = MainApplication.app().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         //gatt server
         bluetoothGattServer = bluetoothManager.openGattServer(MainApplication.app(), gattServerCallback)
+        //add services (chat service not included)
+        addServices()
+    }
+    private fun addServices() {
         //name service
         bluetoothGattServer?.addService(BleGattAttributes.createNameService())
             ?: Log.w(TAG, "Unable to create GATT name server")
         //info service
         bluetoothGattServer?.addService(BleGattAttributes.createInfoService())
             ?: Log.w(TAG, "Unable to create GATT info server")
+    }
+    fun addChatService() {
+        if(bluetoothGattServer == null) startGattServer()
         //add chat service
-        bluetoothGattServer?.addService(BleGattAttributes.createChatService())
+        bluetoothGattServer?.addService(chatService)
             ?: Log.w(TAG, "Unable to create GATT chat server")
+    }
+    fun removeChatService() {
+        if(bluetoothGattServer == null) return
+        //remove chat service
+        bluetoothGattServer?.removeService(chatService)
+            ?: Log.w(TAG, "Unable to remove GATT chat server")
     }
     /**
      * Shut down the GATT server.
@@ -247,7 +262,6 @@ object BleGattServer {
 
     // Properties for current chat device connection
     var gattForClientUse: BluetoothGatt? = null
-    var deviceForServerUse: BluetoothDevice? = null
     var chatMessageChar: BluetoothGattCharacteristic? = null
     fun clientSendMessage(message: String): Boolean {
         Log.d(TAG, "Client Send a message")
@@ -265,23 +279,6 @@ object BleGattServer {
             } ?: run {
                 Log.d(TAG, "client sendMessage: no gatt connection to send a message with")
             }
-        }
-        return false
-    }
-    fun serverSendMessage(message: String): Boolean {
-        Log.d(TAG, "Server Send a message")
-        if(chatMessageChar == null) return false
-        chatMessageChar?.let { characteristic ->
-            val messageBytes = message.toByteArray(Charsets.UTF_8)
-            characteristic.value = messageBytes
-            bluetoothGattServer?.notifyCharacteristicChanged(deviceForServerUse, chatMessageChar, false)
-            _messages.value = BleMessage.LocalMessage(message)
-
-            val locationCharacteristic = bluetoothGattServer
-                ?.getService(UUID.fromString(BleGattAttributes.CHAT_SERVICE))
-                ?.getCharacteristic(UUID.fromString((BleGattAttributes.CHAT_MESSAGE_CHAR)))
-            locationCharacteristic?.value = messageBytes
-            bluetoothGattServer?.notifyCharacteristicChanged(deviceForServerUse, locationCharacteristic, false)
         }
         return false
     }
