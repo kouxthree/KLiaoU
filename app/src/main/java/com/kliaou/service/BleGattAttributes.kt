@@ -130,8 +130,6 @@ class BleGattAttributes {
                 BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_WRITE
             )
-            //set server chat message characteristic
-            BleGattServer.chatMessageChar = messageCharacteristic
             service.addCharacteristic(messageCharacteristic)
             val confirmCharacteristic = BluetoothGattCharacteristic(
                 UUID.fromString(CHAT_CONFIRM_CHAR),
