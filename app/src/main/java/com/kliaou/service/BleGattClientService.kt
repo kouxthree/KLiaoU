@@ -104,10 +104,10 @@ class BleGattClientService: Service() {
 //            Log.d(TAG, String.format("Received name: %d", nameString))
 //            intent.putExtra(EXTRA_DATA, nameString.toString())
 //        } else {
-        if (UUID_CHAT_CHAR == characteristic.uuid) {
-            // chat char //set remote chat char for message writing
-            BleGattServer.remoteChatMessageChar = characteristic
-        } else {
+//        if (UUID_CHAT_CHAR == characteristic.uuid) {
+//            // chat char //set remote chat char for message writing
+//            BleGattServer.remoteChatMessageChar = characteristic
+//        } else {
             //For all other profiles, writes the data formatted in HEX.
             val data = characteristic.value
             if (data != null && data.isNotEmpty()) {
@@ -119,7 +119,7 @@ class BleGattClientService: Service() {
 //                intent.putExtra(EXTRA_DATA,  String(data) + "\n" + stringBuilder.toString())
                 intent.putExtra(EXTRA_DATA,  String(data))
             }
-        }
+//        }
         sendBroadcast(intent)
     }
 

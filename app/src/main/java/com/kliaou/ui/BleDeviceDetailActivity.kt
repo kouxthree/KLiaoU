@@ -215,7 +215,7 @@ class BleDeviceDetailActivity : AppCompatActivity() {
     }
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(mGattUpdateReceiver)
+//        unregisterReceiver(mGattUpdateReceiver)
 //        if(remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
     }
     override fun onDestroy() {

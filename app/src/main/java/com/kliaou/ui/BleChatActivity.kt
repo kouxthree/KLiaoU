@@ -14,7 +14,6 @@ import com.kliaou.databinding.BleActivityChatBinding
 import com.kliaou.service.BleGattServer
 import com.kliaou.service.BleMessage
 
-
 class ChatCaller {
     companion object {
         const val Client = 0
@@ -65,7 +64,9 @@ class BleChatActivity : AppCompatActivity() {
             val alert = AlertDialog.Builder(this)
             alert.setTitle(getString(R.string.chat_hangup_title))
             alert.setMessage(getString(R.string.chat_hangup_message))
-            alert.setPositiveButton(android.R.string.ok) { _, _ ->
+            alert.setPositiveButton(android.R.string.ok) { dialog, which ->
+                dialog.cancel()
+                dialog.dismiss()
                 finish()
             }
             alert.show()
