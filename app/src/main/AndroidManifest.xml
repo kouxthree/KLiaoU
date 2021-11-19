@@ -36,10 +36,7 @@
             android:name=".ui.BleHomeSettingActivity"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".ui.BleResultDetailActivity"
-            android:screenOrientation="portrait"></activity>
-        <activity
-            android:name=".ui.BleConnectDetailActivity"
+            android:name=".ui.BleDeviceDetailActivity"
             android:screenOrientation="portrait"></activity>
         <activity
             android:name=".ui.BleChatActivity"

@@ -262,16 +262,16 @@ object BleGattServer {
 
     // Properties for current chat device connection
     var gattForClientUse: BluetoothGatt? = null
-    var chatMessageChar: BluetoothGattCharacteristic? = null
+    var remoteChatMessageChar: BluetoothGattCharacteristic? = null
     fun clientSendMessage(message: String): Boolean {
         Log.d(TAG, "Client Send a message")
-        if(chatMessageChar == null) return false
-        chatMessageChar?.let { characteristic ->
+        if(remoteChatMessageChar == null) return false
+        remoteChatMessageChar?.let { characteristic ->
             characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             val messageBytes = message.toByteArray(Charsets.UTF_8)
             characteristic.value = messageBytes
             gattForClientUse?.let {
-                val success = it.writeCharacteristic(chatMessageChar)
+                val success = it.writeCharacteristic(remoteChatMessageChar)
                 Log.d(TAG, "client onServicesDiscovered: message send: $success")
                 if (success) {
                     _messages.value = BleMessage.LocalMessage(message)

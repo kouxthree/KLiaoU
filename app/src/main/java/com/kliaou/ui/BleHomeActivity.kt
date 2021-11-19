@@ -36,9 +36,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.lifecycle.Observer
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kliaou.*
-import com.kliaou.blerecycler.BleConnectRecyclerAdapter
-import com.kliaou.blerecycler.BleRecyclerItem
-import com.kliaou.blerecycler.BleScanRecyclerAdapter
+import com.kliaou.blerecycler.BleDeviceRecyclerItem
+import com.kliaou.blerecycler.BleDeviceRecyclerAdapter
 import com.kliaou.databinding.BleActivityHomeMainBinding
 import com.kliaou.databinding.BleHomeLocationBinding
 import com.kliaou.db.Gender
@@ -280,19 +279,21 @@ class BleHomeActivity : AppCompatActivity() {
         BleGattServer.notifyRegisteredDevices()
     }
     //connected devices area
-    private lateinit var bleConnectRecyclerAdapter: BleConnectRecyclerAdapter
+    private lateinit var bleConnectRecyclerAdapter: BleDeviceRecyclerAdapter
     private fun createConnectDevice() {
         //connected devices list
         val connectDeviceLinearLayoutManager = LinearLayoutManager(this)
         _binding.listviewConnected.layoutManager = connectDeviceLinearLayoutManager
-        bleConnectRecyclerAdapter = BleConnectRecyclerAdapter()
+        bleConnectRecyclerAdapter = BleDeviceRecyclerAdapter()
         _binding.listviewConnected.adapter = bleConnectRecyclerAdapter
         //set registered devices observer
         BleGattServer.connectionRequest.observe(this, connectionRequestObserver)
         BleGattServer.disConnectionDevice.observe(this, disConnectionDeviceObserver)
     }
-    private fun changedRegisteredDevice(device: BluetoothDevice): BleRecyclerItem{
-        return BleRecyclerItem(
+    private fun changedRegisteredDevice(device: BluetoothDevice): BleDeviceRecyclerItem{
+        return BleDeviceRecyclerItem(
+            Caller = ChatCaller.Server,
+            AdvertiseUuid = null,
             Name = device.name,
             Address = device.address,
             Timestamp = System.currentTimeMillis()
@@ -318,7 +319,7 @@ class BleHomeActivity : AppCompatActivity() {
     }
 
     //scan
-    private lateinit var bleScanRecyclerAdapter: BleScanRecyclerAdapter
+    private lateinit var bleScanRecyclerAdapter: BleDeviceRecyclerAdapter
     private var scanCallback: ScanCallback? = null
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     //private var handler: Handler? = null
@@ -328,7 +329,7 @@ class BleHomeActivity : AppCompatActivity() {
         if (bluetoothLeScanner == null) initBluetoothLeScanner()
         //scan result list
         _binding.listviewScanresult.layoutManager = scanResultLinearLayoutManager
-        bleScanRecyclerAdapter = BleScanRecyclerAdapter()
+        bleScanRecyclerAdapter = BleDeviceRecyclerAdapter()
         _binding.listviewScanresult.adapter = bleScanRecyclerAdapter
         //btn_search
         setBtnSearchBkColor(false)
@@ -422,16 +423,26 @@ class BleHomeActivity : AppCompatActivity() {
         Log.d(TAG, "buildScanFilters")
         return lst
     }
+    private fun scannedDeviceItem(scanResult: ScanResult): BleDeviceRecyclerItem{
+        return BleDeviceRecyclerItem(
+            Caller = ChatCaller.Client,
+            AdvertiseUuid = scanResult?.scanRecord?.serviceData?.get(ADVERTISE_UUID),
+            Name = scanResult?.device?.name,
+            Address = scanResult?.device?.address!!,
+            Timestamp = System.currentTimeMillis()
+        )
+    }
     inner class BleScanCallback : ScanCallback() {
         override fun onBatchScanResults(results: MutableList<ScanResult>?) {
             super.onBatchScanResults(results)
             Log.d(TAG, "onBatchScanResults size: ${results?.size}")
-            results?.let { bleScanRecyclerAdapter.setItems(it) }
+
+            results?.let { bleScanRecyclerAdapter.setItems(it as MutableList<BleDeviceRecyclerItem>) }
         }
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
             Log.d(TAG, "onScanResult: single")
-            bleScanRecyclerAdapter.addSingleItem(result)
+            bleScanRecyclerAdapter.addSingleItem(scannedDeviceItem(result))
         }
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
