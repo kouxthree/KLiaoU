@@ -49,6 +49,7 @@
     <string name="gender_other2">不问</string>
 
     <string name="chat_greeting">聊天</string>
+    <string name="getting_ready">Wait A Moment</string>
     <string name="chat_send_message">发信息</string>
     <string name="chat_hangup_title">断开链接</string>
     <string name="chat_hangup_message">对方已断开链接</string>

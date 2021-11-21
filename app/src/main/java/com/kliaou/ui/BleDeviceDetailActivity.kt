@@ -37,11 +37,19 @@ class BleDeviceDetailActivity : AppCompatActivity() {
     private var charRemoteNickname: BluetoothGattCharacteristic? = null
     private var charRemoteLocation: BluetoothGattCharacteristic? = null
 
-//    lateinit var remoteInfoRefreshHandler: Handler//for remote info refreshing
-    // refresh remote info continually
-    private val remoteInfoRefreshTask = Runnable {
-        mBleGattClientService?.refresh()
-        //            if(remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
+//    private lateinit var remoteInfoRefreshHandler: Handler//for remote info refreshing
+//    // refresh remote info continually
+    private val remoteInfoRefreshTask =  object : Runnable {
+        override fun run() {
+//            //remote info refresh
+//            mBleGattClientService?.refresh()
+//            if (remoteInfoRefreshHandler != null) remoteInfoRefreshHandler.postDelayed(
+//                this,
+//                REMOTE_INFO_REFRESH_RATE
+//            )
+//            //remote chat message char refresh
+//            setRemoteChatMessageCharVar()
+        }
     }
 
     // Code to manage Service lifecycle.
@@ -278,6 +286,10 @@ class BleDeviceDetailActivity : AppCompatActivity() {
                         charRemoteLocation = gattCharacteristic
                         //read characteristics from server
                         readAndNotifyChars(gattCharacteristic)
+                    }
+                    BleGattAttributes.CHAT_MESSAGE_CHAR -> {
+                        //remote chat char
+                        BleGattServer.remoteChatMessageChar = gattCharacteristic
                     }
                 }
             }

@@ -3,14 +3,18 @@ package com.kliaou.ui
 import android.app.AlertDialog
 import android.bluetooth.BluetoothDevice
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kliaou.R
+import com.kliaou.REMOTE_INFO_REFRESH_RATE
 import com.kliaou.blerecycler.ChatMessageAdapter
 import com.kliaou.databinding.BleActivityChatBinding
+import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattServer
 import com.kliaou.service.BleMessage
 
@@ -26,6 +30,33 @@ class BleChatActivity : AppCompatActivity() {
     private var mChatCaller: Int? = null
     private var mDeviceName: String? = null
     private var mDeviceAddress: String? = null
+
+    private lateinit var remoteInfoRefreshHandler: Handler//for remote info refreshing
+    // refresh remote info continually
+    private val remoteInfoRefreshTask = object :Runnable { //remote chat message char refresh
+        override fun run() {
+            remoteInfoRefreshHandler.postDelayed(this, REMOTE_INFO_REFRESH_RATE)
+            //remote chat message char refresh
+            setRemoteChatMessageCharVar()
+        }}
+    //set remote chat message char
+    private fun setRemoteChatMessageCharVar() {
+        if (BleGattServer.gattForClientUse == null) return
+        if(BleGattServer.remoteChatMessageChar != null) return //already get ready
+        BleGattServer.gattForClientUse!!.discoverServices()
+        //chat char setting process is in BleDeviceDetailActivity.kt services method
+//        val services = BleGattServer.gattForClientUse!!.services ?: return
+//        for (s in services) {
+//            if(s.uuid.toString() != BleGattAttributes.CHAT_SERVICE) continue
+//            val chars = s.characteristics
+//            for (c in chars) {
+//                if(c.uuid.toString() == BleGattAttributes.CHAT_MESSAGE_CHAR) {
+//                    BleGattServer.remoteChatMessageChar = c
+//                    return
+//                }
+//            }
+//        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +82,15 @@ class BleChatActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+    override fun onResume() {
+        super.onResume()
+        remoteInfoRefreshHandler = Handler(Looper.getMainLooper())
+        remoteInfoRefreshHandler.post(remoteInfoRefreshTask)
+    }
+    override fun onPause() {
+        super.onPause()
+        remoteInfoRefreshHandler.removeCallbacks(remoteInfoRefreshTask)
+    }
     //chat view
     private val chatMessageAdapter = ChatMessageAdapter()
     private val chatMessageObserver = Observer<BleMessage> { message ->
@@ -62,8 +102,9 @@ class BleChatActivity : AppCompatActivity() {
             Log.d(TAG, "DisConnection request observer: have device $device")
             //close chat activity
             val alert = AlertDialog.Builder(this)
-            alert.setTitle(getString(R.string.chat_hangup_title))
-            alert.setMessage(getString(R.string.chat_hangup_message))
+//            alert.setTitle(getString(R.string.chat_hangup_title))
+//            alert.setMessage(getString(R.string.chat_hangup_message))
+            alert.setTitle(getString(R.string.chat_hangup_message))
             alert.setPositiveButton(android.R.string.ok) { dialog, which ->
                 dialog.cancel()
                 dialog.dismiss()

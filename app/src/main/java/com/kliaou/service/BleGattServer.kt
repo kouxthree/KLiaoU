@@ -1,5 +1,6 @@
 package com.kliaou.service
 
+import android.app.AlertDialog
 import android.bluetooth.*
 import android.content.Context
 import android.util.Log
@@ -7,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.kliaou.MainApplication
 import com.kliaou.R
+import com.kliaou.ui.BleChatActivity
 import java.util.*
 
 private const val TAG = "BleGattService"
@@ -263,28 +265,10 @@ object BleGattServer {
 
     // Properties for current chat device connection
     var gattForClientUse: BluetoothGatt? = null
-    private var remoteChatMessageChar: BluetoothGattCharacteristic? = null
-    fun setRemoteChatMessageCharVar() {
-        remoteChatMessageChar = null
-        if (gattForClientUse == null) return
-        gattForClientUse!!.discoverServices()
-        val services = gattForClientUse!!.services ?: return
-        for (s in services) {
-            if(s.uuid.toString() != BleGattAttributes.CHAT_SERVICE) continue
-            val chars = s.characteristics
-            for (c in chars) {
-                if(c.uuid.toString() == BleGattAttributes.CHAT_MESSAGE_CHAR) {
-                    remoteChatMessageChar = c
-                    return
-                }
-            }
-        }
-    }
+    var remoteChatMessageChar: BluetoothGattCharacteristic? = null
     fun clientSendMessage(message: String): Boolean {
         Log.d(TAG, "Client Send a message")
-        if(remoteChatMessageChar == null) setRemoteChatMessageCharVar()
         if(remoteChatMessageChar == null) return false
-
         remoteChatMessageChar?.let { characteristic ->
             characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             val messageBytes = message.toByteArray(Charsets.UTF_8)
