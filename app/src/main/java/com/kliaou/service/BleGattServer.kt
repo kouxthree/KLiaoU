@@ -1,14 +1,11 @@
 package com.kliaou.service
 
-import android.app.AlertDialog
 import android.bluetooth.*
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.kliaou.MainApplication
-import com.kliaou.R
-import com.kliaou.ui.BleChatActivity
 import java.util.*
 
 private const val TAG = "BleGattService"

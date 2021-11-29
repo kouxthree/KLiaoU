@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,7 +15,6 @@ import com.kliaou.R
 import com.kliaou.REMOTE_INFO_REFRESH_RATE
 import com.kliaou.blerecycler.ChatMessageAdapter
 import com.kliaou.databinding.BleActivityChatBinding
-import com.kliaou.service.BleGattAttributes
 import com.kliaou.service.BleGattServer
 import com.kliaou.service.BleMessage
 
@@ -113,21 +113,22 @@ class BleChatActivity : AppCompatActivity() {
             alert.show()
         }
     }
+    private val sendMessageListener = View.OnClickListener {
+        val message = _binding.txtChatMessage.text.toString()
+        // only send message if it is not empty
+        if (message.isNotEmpty()) {
+            BleGattServer.clientSendMessage(message)
+            // clear message
+            _binding.txtChatMessage.setText("")
+        }
+    }
     private fun createChatView() {
         //chat message recycler adapter
         Log.d(TAG, "chatWith: set adapter $chatMessageAdapter")
         _binding.txtConversation.layoutManager = LinearLayoutManager(this)
         _binding.txtConversation.adapter = chatMessageAdapter
         //send message listener
-        _binding.btnSendMsg.setOnClickListener {
-            val message = _binding.txtChatMessage.text.toString()
-            // only send message if it is not empty
-            if (message.isNotEmpty()) {
-                BleGattServer.clientSendMessage(message)
-                // clear message
-                _binding.txtChatMessage.setText("")
-            }
-        }
+        _binding.btnSendMsg.setOnClickListener(sendMessageListener)
         //set disconnection request observer
         BleGattServer.disConnectionRequest.observe(this, disConnectionRequestObserver)
         //set message observer
