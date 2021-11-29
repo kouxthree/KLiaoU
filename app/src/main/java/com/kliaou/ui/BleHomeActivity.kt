@@ -160,12 +160,13 @@ class BleHomeActivity : AppCompatActivity() {
 
     //bluetooth
     private lateinit var bluetoothManager: BluetoothManager
+    private lateinit var bluetoothAdapter: BluetoothAdapter
     private fun enableBluetooth() {
         //init bluetooth manager
         bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.getAdapter()
+        bluetoothManager.adapter.also { bluetoothAdapter = it }
         //turn on bluetooth
-        if (bluetoothAdapter?.isEnabled == true) {
+        if (bluetoothAdapter.isEnabled) {
             _binding.textServerInfo1.text = ""
         } else {
             _binding.textServerInfo1.text = getString(R.string.bl_not_available)
@@ -291,10 +292,16 @@ class BleHomeActivity : AppCompatActivity() {
         BleGattServer.disConnectionDevice.observe(this, disConnectionDeviceObserver)
     }
     private fun changedRegisteredDevice(device: BluetoothDevice): BleDeviceRecyclerItem{
+        //when added to server view, device name may be empty
+        var devicename = device.name
+//        if(devicename == null || devicename.isNullOrEmpty()) {
+//            val devicereget = bluetoothAdapter.getRemoteDevice(device.address)
+//            devicename = devicereget?.name
+//        }
         return BleDeviceRecyclerItem(
             Caller = ChatCaller.Server,
             AdvertiseUuid = null,
-            Name = device.name,
+            Name = devicename,
             Address = device.address,
             Timestamp = System.currentTimeMillis()
         )
@@ -346,9 +353,9 @@ class BleHomeActivity : AppCompatActivity() {
         }
     }
     private fun initBluetoothLeScanner() {
-        val manager =
-            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val bluetoothAdapter = manager.adapter
+//        val manager =
+//            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+//        val bluetoothAdapter = manager.adapter
         bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
     }
     private fun buildScanSettings() = ScanSettings.Builder()
@@ -426,9 +433,9 @@ class BleHomeActivity : AppCompatActivity() {
     private fun scannedDeviceItem(scanResult: ScanResult): BleDeviceRecyclerItem{
         return BleDeviceRecyclerItem(
             Caller = ChatCaller.Client,
-            AdvertiseUuid = scanResult?.scanRecord?.serviceData?.get(ADVERTISE_UUID),
-            Name = scanResult?.device?.name,
-            Address = scanResult?.device?.address!!,
+            AdvertiseUuid = scanResult.scanRecord?.serviceData?.get(ADVERTISE_UUID),
+            Name = scanResult.device?.name,
+            Address = scanResult.device?.address!!,
             Timestamp = System.currentTimeMillis()
         )
     }

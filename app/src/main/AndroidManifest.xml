@@ -40,7 +40,8 @@
             android:screenOrientation="portrait"></activity>
         <activity
             android:name=".ui.BleChatActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" ></activity>
         <service
             android:name=".service.BleAdvertiserService"
             android:enabled="true"
