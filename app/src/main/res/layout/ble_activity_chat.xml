@@ -9,28 +9,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.9"/>
+        app:layout_constraintGuide_percent="0.85"/>
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/chat_guideline_v_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.8"/>
+        app:layout_constraintGuide_percent="0.75"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/txt_conversation"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:scrollbars="vertical"
-        android:layout_weight="1"
-        app:layout_constraintBottom_toBottomOf="@+id/chat_guideline_h_1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -38,19 +24,45 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/chat_guideline_v_1"
+        android:layout_margin="10dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/chat_guideline_h_1"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/chat_guideline_h_1"
-        app:layout_constraintHorizontal_bias="0.51"
-        app:layout_constraintVertical_bias="0.291">
-        <EditText
-            android:id="@+id/txt_chat_message"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/txt_conversation"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:hint="@string/chat_send_message"
-            android:textSize="24sp"/>
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:scrollbars="vertical"
+            android:layout_weight="1"/>
+    </LinearLayout>
+    <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_margin="10dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/chat_guideline_v_1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/chat_guideline_h_1"
+            app:layout_constraintHorizontal_bias="0.51"
+            app:layout_constraintVertical_bias="0.291">
+            <EditText
+                android:id="@+id/txt_chat_message"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint="@string/chat_send_message"
+                android:textSize="18sp"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="0dp"
@@ -59,6 +71,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:layout_margin="10dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -68,8 +81,9 @@
         app:layout_constraintVertical_bias="0.291">
         <Button
             android:id="@+id/btn_send_msg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/chat_send_message" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/chat_send_message"/>
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
