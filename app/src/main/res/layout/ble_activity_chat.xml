@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.9"/>
+        app:layout_constraintGuide_percent="0.85"/>
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/chat_guideline_v_1"
         android:layout_width="wrap_content"
@@ -60,7 +60,7 @@
             <EditText
                 android:id="@+id/txt_chat_message"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:hint="@string/chat_send_message"
                 android:textSize="18sp"/>
     </LinearLayout>
@@ -82,7 +82,7 @@
         <Button
             android:id="@+id/btn_send_msg"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/chat_send_message"/>
     </LinearLayout>
 
